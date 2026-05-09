@@ -9,6 +9,7 @@
 }
 
 :root {
+  /* Seeker palette */
   --color-bg: #FAF9F6;
   --color-primary: #0D5C3A;
   --color-secondary: #5C8B6E;
@@ -21,6 +22,18 @@
   --font-display: 'Fraunces', serif;
   --radius-card: 12px;
   --radius-btn: 8px;
+
+  /* Clinic palette */
+  --navy:          #0d1b2a;
+  --navy-mid:      #1a2e42;
+  --navy-light:    #243b55;
+  --off-white:     #f0ece4;
+  --text-muted:    #8a9bb0;
+  --urgent-red:    #d94f3d;
+  --urgent-orange: #e8a020;
+  --urgent-yellow: #d4b84a;
+  --urgent-green:  #2eb87e;
+  --border:        #2a3f55;
 }
 
 html {

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback } from 'react'
+import { mockCases } from '../lib/mockCases'
 
 const translations = {
   // ── Interview navigation ──
@@ -542,6 +543,9 @@ export function AppProvider({ children }) {
   const [interviewAnswers, setInterviewAnswers] = useState({})
   const [interviewPhase1, setInterviewPhase1] = useState({})
   const [interviewPhase2, setInterviewPhase2] = useState({})
+  const [clinicAuth, setClinicAuth] = useState(null)
+
+  const isAuthenticated = useCallback(() => clinicAuth !== null, [clinicAuth])
 
   const t = useCallback(
     (key) => {
@@ -554,7 +558,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider
-      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, interviewAnswers, setInterviewAnswers, interviewPhase1, setInterviewPhase1, interviewPhase2, setInterviewPhase2, t }}
+      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, interviewAnswers, setInterviewAnswers, interviewPhase1, setInterviewPhase1, interviewPhase2, setInterviewPhase2, clinicAuth, setClinicAuth, isAuthenticated, cases: mockCases, t }}
     >
       {children}
     </AppContext.Provider>

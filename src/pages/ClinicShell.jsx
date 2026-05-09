@@ -1,58 +1,74 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import LanguageSwitcher from '../components/LanguageSwitcher'
 
 export default function ClinicShell() {
-  const { t, setRole } = useApp()
+  const { clinicAuth, setClinicAuth, setRole } = useApp()
   const navigate = useNavigate()
 
   const handleLogout = () => {
+    setClinicAuth(null)
     setRole(null)
     navigate('/')
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F5F5F3' }}>
-      {/* Top nav */}
+    <div style={{ minHeight: '100vh', background: 'var(--navy)' }}>
       <nav
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0.75rem 1.5rem',
-          background: 'var(--color-card)',
-          borderBottom: '1px solid var(--color-border)',
+          padding: '0 1.5rem',
+          height: 52,
+          background: 'var(--navy-mid)',
+          borderBottom: '1px solid var(--border)',
+          flexShrink: 0,
         }}
       >
         <span
           style={{
             fontFamily: 'var(--font-display)',
             fontStyle: 'italic',
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            color: 'var(--color-primary)',
+            fontSize: '1.2rem',
+            fontWeight: 600,
+            color: 'var(--off-white)',
+            letterSpacing: '0.06em',
           }}
         >
-          {t('clinic.nav.logo')}
+          REFUGE
         </span>
-        <LanguageSwitcher containerStyle={{ position: 'relative', top: 'auto', right: 'auto', zIndex: 10 }} />
-        <button
-          onClick={handleLogout}
-          aria-label={t('clinic.nav.logout')}
-          style={{
-            padding: '0.5rem 1rem',
-            border: '1.5px solid var(--color-border)',
-            borderRadius: 'var(--radius-btn)',
-            fontSize: '0.85rem',
-            fontWeight: 500,
-            color: 'var(--color-text)',
-            background: 'transparent',
-            cursor: 'pointer',
-            minHeight: 36,
-          }}
-        >
-          {t('clinic.nav.logout')}
-        </button>
+
+        {clinicAuth && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <span
+              style={{
+                fontFamily: 'monospace',
+                fontSize: '0.78rem',
+                color: 'var(--text-muted)',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {clinicAuth.employeeId} · {clinicAuth.estabId}
+            </span>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '0.35rem 0.85rem',
+                border: '1px solid var(--border)',
+                borderRadius: 4,
+                fontSize: '0.78rem',
+                fontWeight: 500,
+                color: 'var(--text-muted)',
+                background: 'transparent',
+                cursor: 'pointer',
+                letterSpacing: '0.02em',
+                minHeight: 30,
+              }}
+            >
+              Se déconnecter · Log out
+            </button>
+          </div>
+        )}
       </nav>
 
       <Outlet />

@@ -10,6 +10,7 @@ import SeekerReport from './pages/seeker/SeekerReport'
 import ClinicShell from './pages/ClinicShell'
 import ClinicLogin from './pages/ClinicLogin'
 import ClinicDashboard from './pages/ClinicDashboard'
+import CaseDossier from './pages/CaseDossier'
 
 export default function App() {
   return (
@@ -27,7 +28,7 @@ export default function App() {
       <Route path="/clinic" element={<ClinicShell />}>
         <Route index element={<ClinicLogin />} />
         <Route path="dashboard" element={<ClinicDashboard />} />
-        {/* TODO: case/:id dossier view */}
+        <Route path="case/:id" element={<CaseDossier />} />
       </Route>
     </Routes>
   )
