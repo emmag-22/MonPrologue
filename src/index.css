@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --color-bg: #FAF9F6;
+  --color-primary: #0D5C3A;
+  --color-secondary: #5C8B6E;
+  --color-text: #1A1A18;
+  --color-card: #FFFFFF;
+  --color-border: #E8E4DC;
+  --color-danger: #C0392B;
+  --color-muted: #7A7A72;
+  --font-ui: 'DM Sans', sans-serif;
+  --font-display: 'Fraunces', serif;
+  --radius-card: 12px;
+  --radius-btn: 8px;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-ui);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  background-image: radial-gradient(circle, var(--color-border) 1px, transparent 1px);
+  background-size: 24px 24px;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Focus rings */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+button {
+  font-family: var(--font-ui);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input {
+  font-family: var(--font-ui);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

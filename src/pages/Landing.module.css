@@ -1,0 +1,148 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+/* Language bar */
+.langBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+
+.langBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1.5px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  min-height: 40px;
+}
+
+.langBtn:hover {
+  border-color: var(--color-secondary);
+}
+
+.langBtnActive {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.langBtnActive:hover {
+  border-color: var(--color-primary);
+}
+
+/* Identity */
+.identity {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.appName {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 3.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  font-size: 1.2rem;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+  max-width: 420px;
+}
+
+.disclaimer {
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  max-width: 440px;
+  line-height: 1.5;
+}
+
+/* Role cards */
+.cards {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 640px;
+  justify-content: center;
+}
+
+.card {
+  flex: 1;
+  min-height: 220px;
+  background: var(--color-card);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+  animation: fadeInUp 500ms ease both;
+}
+
+.card:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px rgba(13, 92, 58, 0.08);
+}
+
+.cardIcon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-primary);
+}
+
+.cardTitle {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cardSubtitle {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .cards {
+    flex-direction: column;
+  }
+
+  .card {
+    min-height: 180px;
+  }
+
+  .appName {
+    font-size: 2.5rem;
+  }
+
+  .tagline {
+    font-size: 1.05rem;
+  }
+}
