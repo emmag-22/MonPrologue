@@ -277,6 +277,33 @@ const translations = {
     ar: 'أخبرنا لماذا.',
   },
 
+  // ── Phase 0 — preliminary questions ──
+  'p0q1.prompt': { fr: 'De quel pays avez-vous fui ?', en: 'What country did you flee from?', es: '¿De qué país huyó?', ar: 'من أي بلد فررت؟' },
+  'p0q1.search': { fr: 'Chercher un pays…', en: 'Search for a country…', es: 'Buscar un país…', ar: 'ابحث عن بلد…' },
+  'p0q2.prompt': { fr: 'Depuis combien de temps êtes-vous au Canada et dans quelle province ?', en: 'How long have you been in Canada, and in which province?', es: '¿Cuánto tiempo lleva en Canadá y en qué provincia?', ar: 'منذ متى وأنت في كندا وفي أي مقاطعة؟' },
+  'p0q3.prompt': { fr: 'Comment vous identifiez-vous ?', en: 'How do you identify?', es: '¿Cómo se identifica?', ar: 'كيف تعرّف عن نفسك؟' },
+  'p0q4.prompt': { fr: 'Dans quel groupe d\'âge êtes-vous ?', en: 'Which age group are you in?', es: '¿En qué grupo de edad está?', ar: 'في أي فئة عمرية أنت؟' },
+  'p0q5.prompt': { fr: 'Comment êtes-vous arrivé(e) au Canada ?', en: 'How did you arrive in Canada?', es: '¿Cómo llegó a Canadá?', ar: 'كيف وصلت إلى كندا؟' },
+  'p0q5.plane': { fr: 'Avion', en: 'Plane', es: 'Avión', ar: 'طائرة' },
+  'p0q5.road': { fr: 'Route', en: 'Road', es: 'Carretera', ar: 'طريق بري' },
+  'p0q5.boat': { fr: 'Bateau', en: 'Boat', es: 'Barco', ar: 'قارب' },
+  'p0q5.train': { fr: 'Train', en: 'Train', es: 'Tren', ar: 'قطار' },
+  'p0q5.other': { fr: 'Autre', en: 'Other', es: 'Otro', ar: 'أخرى' },
+  'p0q6.prompt': { fr: 'Quand êtes-vous arrivé(e) au Canada ?', en: 'When did you arrive in Canada?', es: '¿Cuándo llegó a Canadá?', ar: 'متى وصلت إلى كندا؟' },
+  'p0q6.day': { fr: 'Jour', en: 'Day', es: 'Día', ar: 'اليوم' },
+  'p0q6.month': { fr: 'Mois', en: 'Month', es: 'Mes', ar: 'الشهر' },
+  'p0q6.year': { fr: 'Année', en: 'Year', es: 'Año', ar: 'السنة' },
+  'p0.done.heading': { fr: 'Questions préliminaires complètes.', en: 'Preliminary questions complete.', es: 'Preguntas preliminares completas.', ar: 'الأسئلة التمهيدية مكتملة.' },
+  'p0.done.body': { fr: 'Continuons avec votre récit.', en: 'Let\'s continue with your story.', es: 'Continuemos con su historia.', ar: 'لنواصل مع قصتك.' },
+  'p0.done.submit': { fr: 'Continuer', en: 'Continue', es: 'Continuar', ar: 'متابعة' },
+
+  // Phase navigation bar
+  'phase.nav.0': { fr: 'Questions préliminaires', en: 'Preliminary questions', es: 'Preguntas preliminares', ar: 'أسئلة تمهيدية' },
+  'phase.nav.1': { fr: 'Rédaction du récit', en: 'Narrative drafting', es: 'Redacción del relato', ar: 'صياغة الرواية' },
+  'phase.nav.2': { fr: 'Questions personnalisées', en: 'Personalized questions', es: 'Preguntas personalizadas', ar: 'أسئلة مخصصة' },
+  'phase.nav.3': { fr: 'Questions sensibles', en: 'Sensitivity questions', es: 'Preguntas sensibles', ar: 'أسئلة حساسة' },
+  'phase.nav.4': { fr: 'Révision', en: 'Review', es: 'Revisión', ar: 'مراجعة' },
+
   // Landing — language bar
   'lang.fr': { fr: 'Français', en: 'Français', es: 'Français', ht: 'Français', ar: 'Français' },
   'lang.en': { fr: 'English', en: 'English', es: 'English', ht: 'English', ar: 'English' },
@@ -571,6 +598,7 @@ export function AppProvider({ children }) {
   const [language, setLanguage] = useState('fr')
   const [role, setRole] = useState(null)
   const [sessionPin, setSessionPin] = useState(null)
+  const [interviewPhase0, setInterviewPhase0] = useState({})
   const [interviewAnswers, setInterviewAnswers] = useState({})
   const [interviewPhase1, setInterviewPhase1] = useState({})
   const [interviewPhase2, setInterviewPhase2] = useState({})
@@ -589,7 +617,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider
-      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, interviewAnswers, setInterviewAnswers, interviewPhase1, setInterviewPhase1, interviewPhase2, setInterviewPhase2, clinicAuth, setClinicAuth, isAuthenticated, cases: mockCases, t }}
+      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, interviewPhase0, setInterviewPhase0, interviewAnswers, setInterviewAnswers, interviewPhase1, setInterviewPhase1, interviewPhase2, setInterviewPhase2, clinicAuth, setClinicAuth, isAuthenticated, cases: mockCases, t }}
     >
       {children}
     </AppContext.Provider>
