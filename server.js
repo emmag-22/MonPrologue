@@ -3,8 +3,13 @@ import cors from 'cors'
 import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import admin from 'firebase-admin'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+
+// ── Firebase setup ──
+admin.initializeApp({ projectId: process.env.GCP_PROJECT_ID || 'dueprocessors' })
+const db = admin.firestore()
 
 const app = express()
 app.use(cors())
@@ -413,6 +418,70 @@ app.post('/api/similar-cases', async (req, res) => {
     res.json({ cases: [] })
   } catch (err) {
     console.error('similar-cases error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── 7. Submit a case from seeker to clinic ──
+app.post('/api/cases', async (req, res) => {
+  try {
+    const { clinic, sessionPin, answers, contactInfo } = req.body
+    if (!clinic) return res.status(400).json({ error: 'Clinic is required' })
+
+    const p0 = answers?.p0 || {}
+    const country = typeof p0[2] === 'string' ? p0[2] : (p0[0] || 'Unknown')
+    const ground = typeof p0[3] === 'string' ? p0[3] : 'unknown'
+    const groundLabel = { race: 'Race', religion: 'Religion', nationality: 'Nationality', political: 'Political opinion', psg: 'Particular social group' }[ground] || ground
+
+    const caseId = `${Math.floor(1000 + Math.random() * 9000)}-QC`
+    const now = new Date().toISOString()
+
+    const caseDoc = {
+      id: caseId,
+      sessionId: `#${caseId}`,
+      sessionPin: sessionPin || null,
+      clinic,
+      country,
+      countryFlag: '',
+      legalCategory: 'Section 96 — Refugee',
+      claimStrength: 'Pending',
+      detailTag: 'New submission',
+      filedDate: now.split('T')[0],
+      hearingDate: null,
+      status: 'open',
+      contactInfo: contactInfo || null,
+      answers,
+      createdAt: now,
+    }
+
+    await db.collection('cases').doc(caseId).set(caseDoc)
+    console.log(`Case ${caseId} submitted to clinic: ${clinic}`)
+
+    res.json({ caseId, sessionId: `#${caseId}` })
+  } catch (err) {
+    console.error('submit case error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── 8. Fetch cases for a clinic ──
+app.get('/api/cases', async (req, res) => {
+  try {
+    const { clinic } = req.query
+    if (!clinic) return res.status(400).json({ error: 'Clinic query param required' })
+
+    const snapshot = await db.collection('cases')
+      .where('clinic', '==', clinic)
+      .orderBy('createdAt', 'desc')
+      .limit(50)
+      .get()
+
+    const cases = []
+    snapshot.forEach(doc => cases.push(doc.data()))
+
+    res.json({ cases })
+  } catch (err) {
+    console.error('fetch cases error:', err.message)
     res.status(500).json({ error: err.message })
   }
 })

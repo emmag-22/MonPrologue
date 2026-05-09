@@ -10,7 +10,7 @@ const METHODS = [
 ]
 
 export default function SeekerContact() {
-  const { setContactInfo, setSessionPin, selectedClinic } = useApp()
+  const { setContactInfo, setSessionPin, selectedClinic, interviewPhase0, interviewPhase1, interviewPhase2, interviewPhase3 } = useApp()
 
   const [selected, setSelected] = useState(new Set())
   const [values, setValues] = useState({ email: '', phone: '', whatsapp: '' })
@@ -32,15 +32,39 @@ export default function SeekerContact() {
     (m) => selected.has(m.id) && values[m.id].trim().length > 0
   )
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const raw = String(Math.floor(100000 + Math.random() * 900000))
     setSessionPin(raw)
     setPin(raw)
-    setContactInfo({
+    const contact = {
       email:    selected.has('email')    ? values.email.trim()    : null,
       phone:    selected.has('phone')    ? values.phone.trim()    : null,
       whatsapp: selected.has('whatsapp') ? values.whatsapp.trim() : null,
-    })
+    }
+    setContactInfo(contact)
+
+    // Submit case to backend → Firestore
+    try {
+      const API = import.meta.env.DEV ? 'http://localhost:3001' : ''
+      await fetch(`${API}/api/cases`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clinic: selectedClinic || 'Le Collectif Bienvenue',
+          sessionPin: raw,
+          answers: {
+            p0: interviewPhase0,
+            p1: interviewPhase1,
+            p2: interviewPhase2,
+            p3: interviewPhase3,
+          },
+          contactInfo: contact,
+        }),
+      })
+    } catch (err) {
+      console.warn('Failed to submit case to server:', err.message)
+    }
+
     setSubmitted(true)
   }
 

@@ -78,14 +78,34 @@ function CaseCard({ caseObj, onClick }) {
   )
 }
 
+const CLINIC_NAME = 'Le Collectif Bienvenue'
+
 export default function ClinicDashboard() {
-  const { isAuthenticated, cases } = useApp()
+  const { isAuthenticated, cases: mockCases } = useApp()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('open')
+  const [liveCases, setLiveCases] = useState([])
 
   useEffect(() => {
     if (!isAuthenticated()) navigate('/clinic', { replace: true })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch real cases from Firestore
+  useEffect(() => {
+    const API = import.meta.env.DEV ? 'http://localhost:3001' : ''
+    fetch(`${API}/api/cases?clinic=${encodeURIComponent(CLINIC_NAME)}`)
+      .then(r => r.ok ? r.json() : { cases: [] })
+      .then(data => setLiveCases(data.cases || []))
+      .catch(() => {})
+  }, [])
+
+  // Merge mock + live cases (live cases first, dedupe by id)
+  const seen = new Set()
+  const cases = [...liveCases, ...mockCases].filter(c => {
+    if (seen.has(c.id)) return false
+    seen.add(c.id)
+    return true
+  })
 
   const tabCounts = Object.fromEntries(
     TABS.map((t) => [t.key, cases.filter((c) => c.status === t.key).length])
