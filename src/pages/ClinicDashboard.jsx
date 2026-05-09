@@ -43,8 +43,8 @@ function CaseCard({ caseObj, onClick }) {
       onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)')}
       onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
     >
-      {/* Urgency band */}
-      <div style={{ width: 4, background: PRIORITY_COLOR[priority], flexShrink: 0 }} />
+      {/* Urgency sidebar */}
+      <div style={{ width: 10, background: PRIORITY_COLOR[priority], flexShrink: 0 }} />
 
       {/* Content */}
       <div
@@ -56,28 +56,16 @@ function CaseCard({ caseObj, onClick }) {
           gap: '0.3rem',
         }}
       >
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: '50%',
-              background: PRIORITY_COLOR[priority],
-              flexShrink: 0,
-              display: 'inline-block',
-            }}
-          />
-          <span
-            style={{
-              fontFamily: 'monospace',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              letterSpacing: '0.04em',
-            }}
-          >
-            {caseObj.sessionId}
-          </span>
+        <span
+          style={{
+            fontFamily: 'monospace',
+            fontSize: '0.82rem',
+            fontWeight: 700,
+            color: 'var(--color-text)',
+            letterSpacing: '0.04em',
+          }}
+        >
+          {caseObj.sessionId}
         </span>
         <span style={{ fontSize: '0.9rem', color: 'var(--color-text)', fontWeight: 500 }}>
           {caseObj.countryFlag}&nbsp;&nbsp;{caseObj.country}
