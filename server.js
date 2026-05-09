@@ -114,6 +114,7 @@ Example: ["Question one?", "Question two?"]`
     const text = await callClaude({
       system,
       userContent: `Please generate questions in ${language}.\n\n${context}`,
+      model: 'claude-haiku-4-5-20251001',
       maxTokens: 1024,
     })
 
@@ -127,7 +128,8 @@ Example: ["Question one?", "Question two?"]`
     res.json({ questions })
   } catch (err) {
     console.error('generate-questions error:', err.message)
-    res.status(500).json({ error: err.message })
+    const status = err.message.includes('429') ? 429 : 500
+    res.status(status).json({ error: err.message })
   }
 })
 
