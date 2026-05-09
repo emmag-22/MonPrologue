@@ -1,9 +1,16 @@
 import express from 'express'
 import cors from 'cors'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const app = express()
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
+
+// Serve built frontend in production
+app.use(express.static(join(__dirname, 'dist')))
 
 const PORT = process.env.PORT || 3001
 const OPENJUSTICE_API_KEY = process.env.OPENJUSTICE_API_KEY
@@ -191,6 +198,11 @@ ${dossier}`
     console.error('generate-boc error:', err.message)
     res.status(500).json({ error: err.message })
   }
+})
+
+// SPA fallback — serve index.html for all non-API routes
+app.get('/{*path}', (req, res) => {
+  res.sendFile(join(__dirname, 'dist', 'index.html'))
 })
 
 app.listen(PORT, () => {
