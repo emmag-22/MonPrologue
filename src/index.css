@@ -92,67 +92,118 @@ a:hover {
 
 /* ── Print stylesheet for clinic PDF reports ── */
 @media print {
-  /* Hide non-report elements */
+  /* Page setup — compact margins, no blank space */
+  @page {
+    size: letter;
+    margin: 1.5cm 1.2cm 2cm 1.2cm;
+  }
+
+  /* Reset everything */
   body {
     background: white !important;
     background-image: none !important;
-    color: #000 !important;
-    font-size: 12pt !important;
-    line-height: 1.5 !important;
+    color: #1a1a18 !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
+  /* Hide non-report elements */
   .no-print,
   nav,
-  [aria-label="Language selection"] {
+  [aria-label="Language selection"],
+  button {
     display: none !important;
   }
 
-  /* Only show the clinic report */
-  #root > * {
-    display: none !important;
-  }
-  #root > *:has(#clinic-report) {
-    display: block !important;
-  }
+  /* Show only the report */
+  #root > * { display: none !important; }
+  #root > *:has(#clinic-report) { display: block !important; }
   #clinic-report {
     padding: 0 !important;
+    min-height: auto !important;
+  }
+  #clinic-report > div {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   /* Force readable colors */
   * {
     color: #1a1a18 !important;
-    background: white !important;
-    border-color: #ccc !important;
     box-shadow: none !important;
   }
 
-  /* Cards get visible borders */
+  /* Cards: compact, no blank space, allow page breaks inside */
   #clinic-report div[style*="border-radius"] {
-    border: 1px solid #ccc !important;
-    page-break-inside: avoid;
+    border: 1px solid #bbb !important;
+    background: white !important;
+    margin-bottom: 0.4rem !important;
+    padding: 0.6rem 0.8rem !important;
+    page-break-inside: auto;
+    break-inside: auto;
   }
 
-  /* Section breaks */
+  /* NO forced page breaks — let content flow naturally */
   .print-break {
-    page-break-before: always;
+    page-break-before: auto !important;
   }
 
-  /* Timeline keeps structure */
-  #clinic-report div[style*="position: absolute"][style*="width: 2"] {
-    background: #999 !important;
+  /* Avoid orphaned headers */
+  h1, h2, h3, p[style*="uppercase"] {
+    page-break-after: avoid;
   }
 
-  /* Colored badges print with borders */
+  /* Grid layouts go single column */
+  div[style*="grid-template-columns"] {
+    display: block !important;
+  }
+  div[style*="grid-template-columns"] > * {
+    margin-bottom: 0.4rem !important;
+  }
+
+  /* Compact typography — fill pages */
+  p, li, span {
+    font-size: 9pt !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Section labels stay small */
+  p[style*="0.6rem"],
+  p[style*="0.62rem"],
+  p[style*="0.58rem"],
+  p[style*="0.68rem"] {
+    font-size: 7pt !important;
+    margin-bottom: 0.15rem !important;
+  }
+
+  /* Timeline dots visible */
+  div[style*="border-radius: 50%"] {
+    border-color: #666 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Keep colored badges readable */
   span[style*="border-radius: 999"] {
-    border: 1px solid #999 !important;
-    background: transparent !important;
+    border: 1px solid #888 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
-  /* Links show URL */
+  /* Background colors for badges */
+  div[style*="border-left: 3px"] {
+    border-left-color: #888 !important;
+    background: #f5f5f5 !important;
+  }
+
+  /* Links show URL — but compact */
   a[href]:after {
-    content: " (" attr(href) ")";
-    font-size: 9pt;
-    color: #666 !important;
+    content: " [" attr(href) "]";
+    font-size: 7pt;
+    color: #888 !important;
     word-break: break-all;
   }
   a[href^="javascript"]:after,
@@ -160,26 +211,33 @@ a:hover {
     content: "";
   }
 
-  /* Page footer */
-  @page {
-    margin: 2cm 1.5cm;
-    @bottom-center {
-      content: "Refuge Legal Report — Confidential — Not legal advice";
-      font-size: 8pt;
-      color: #999;
-    }
+  /* Source cards compact */
+  a[style*="background: var(--color-bg)"] {
+    padding: 0.3rem 0.5rem !important;
+    background: #f9f9f9 !important;
   }
 
-  /* Bump font for readability */
-  p, li, span {
-    font-size: 11pt !important;
-    line-height: 1.6 !important;
+  /* Disclaimer footer */
+  .print-footer-text {
+    border-top: 1px solid #ccc !important;
+    margin-top: 0.5rem !important;
+    padding-top: 0.3rem !important;
+  }
+  .print-footer-text p {
+    font-size: 7pt !important;
   }
 
-  /* Labels stay small */
-  p[style*="0.6rem"],
-  p[style*="0.62rem"],
-  p[style*="0.58rem"] {
-    font-size: 8pt !important;
+  /* Reduce all gaps and margins to fill pages */
+  div[style*="gap"] {
+    gap: 0.3rem !important;
+  }
+  div[style*="margin-bottom: 0.75rem"] {
+    margin-bottom: 0.35rem !important;
+  }
+  div[style*="margin-bottom: 1rem"] {
+    margin-bottom: 0.4rem !important;
+  }
+  div[style*="padding: 1rem"] {
+    padding: 0.5rem 0.7rem !important;
   }
 }

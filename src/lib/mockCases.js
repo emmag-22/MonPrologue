@@ -147,26 +147,82 @@ export function getMockDossierForCase(caseObj) {
       nextSteps: ['Your file will be shared with a legal clinic.', 'A legal advisor will review your case.', 'Keep any documents or evidence you have.'],
       safetyMessage: 'You are safe in Canada. No one can send you back without a full hearing. You have the right to be heard.',
     },
-    clinicReport: {
-      conventionGroundAnalysis: `Primary ground: ${ground.replace(/_/g, ' ')} under IRPA s.96. The claimant from ${caseObj.country} describes persecution consistent with the Convention refugee definition. ${caseObj.legalCategory.includes('97') ? 'A parallel s.97(1) claim for risk to life or cruel and unusual treatment should also be considered.' : ''} The claim strength is assessed as ${caseObj.claimStrength.toLowerCase()} based on the available evidence and narrative coherence.`,
-      narrativeAssessment: 'The narrative provides a substantive foundation but requires targeted supplementation in the flagged areas. Timeline gaps and state protection documentation are the primary areas for counsel attention. These gaps should be explored compassionately — they may reflect trauma, memory fragmentation, or language barriers rather than inconsistency.',
-      recommendedActions: [
-        'Obtain a detailed statutory declaration addressing the timeline gaps between key incidents',
-        'Document state protection attempts with specificity, or explain why formal channels were unavailable or unsafe',
-        hasIFA ? 'Prepare a comprehensive IFA rebuttal supported by current country condition reports' : 'Review IFA position and prepare supporting country condition evidence',
-        'Identify and collect any available corroborating evidence (medical, documentary, testimonial)',
-        'Review National Documentation Package for updated country conditions',
-      ],
-      irpaCitations: [
-        's.96 — Convention refugee: well-founded fear of persecution for reasons of race, religion, nationality, membership in a particular social group, or political opinion',
-        's.97(1) — Person in need of protection: risk to life, or risk of cruel and unusual treatment or punishment',
-        's.97(1)(a) — Danger of torture as defined under Article 1 of the Convention Against Torture',
-        's.100(1) — Referral of eligible claim to the Refugee Protection Division',
-        's.170 — Proceedings before the RPD shall be conducted as informally and quickly as the circumstances and considerations of fairness and natural justice permit',
-      ],
-      riskLevel: isStrong ? 'low' : (caseObj.claimStrength === 'Weak' ? 'high' : 'medium'),
-      estimatedProcessingNotes: `Standard RPD processing. ${caseObj.hearingDate ? 'Hearing date scheduled — prioritize BOC preparation.' : 'No hearing date yet — use this time to strengthen the file.'} ${caseObj.detailTag === 'Minor claimant' ? 'Minor claimant protocols apply — designated representative required.' : ''}`,
-    },
+    clinicReport: (() => {
+      const filed = new Date(caseObj.filedDate || '2026-01-15')
+      const now = new Date()
+      const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r }
+      const daysUntil = (d) => Math.round((d.getTime() - now.getTime()) / 86400000)
+      const fmt = (d) => d.toISOString().split('T')[0]
+      const eligDate = addDays(filed, 3)
+      const bocDate = addDays(eligDate, 15)
+      const hearingEst = caseObj.hearingDate ? new Date(caseObj.hearingDate) : addDays(filed, 120)
+      const discDate = addDays(hearingEst, -10)
+      const caseId = `REF-2026-${caseObj.id?.replace('-QC', '') || '0000'}`
+
+      return {
+        caseId,
+        priority: daysUntil(bocDate) < 7 ? 'URGENT' : (daysUntil(bocDate) < 30 || caseObj.detailTag === 'Explicit threat' || caseObj.detailTag === 'Minor claimant') ? 'HIGH' : 'NORMAL',
+        currentStatus: caseObj.hearingDate ? 'Pre-hearing preparation' : daysUntil(bocDate) > 0 ? 'Awaiting BOC submission' : 'BOC deadline passed — expedite',
+        narrativeSummary: `The claimant is a national of ${caseObj.country} who seeks refugee protection on the basis of ${ground.replace(/_/g, ' ')}. ${caseObj.detailTag === 'State actor' ? 'The alleged persecutor has been identified as a state actor, which is a significant element strengthening the claim.' : `The claimant reports ${caseObj.detailTag?.toLowerCase() || 'persecution'} in their country of origin.`} The claimant entered Canada and has been residing in Quebec. ${hasIFA ? 'The Internal Flight Alternative has not been addressed in the current narrative and the IRB is likely to raise this issue.' : 'The claimant has addressed the Internal Flight Alternative.'} State protection ${caseObj.detailTag === 'State actor' ? 'is fundamentally compromised given the involvement of state actors' : 'was either not sought or was inadequate'}. The claim strength is assessed as ${caseObj.claimStrength}.`,
+        timelineEvents: [
+          { date: fmt(addDays(filed, -365)), event: 'First persecution incident reported by claimant', type: 'persecution' },
+          { date: fmt(addDays(filed, -180)), event: 'Escalation — direct threats to claimant and family', type: 'persecution' },
+          { date: fmt(addDays(filed, -90)), event: `Departed ${caseObj.country}`, type: 'travel' },
+          { date: fmt(addDays(filed, -30)), event: 'Transit through third country', type: 'travel' },
+          { date: fmt(filed), event: 'Arrived in Canada — asylum claim filed', type: 'canada' },
+          { date: fmt(eligDate), event: 'Eligibility interview (estimated)', type: 'canada' },
+          { date: fmt(bocDate), event: 'BOC form deadline', type: 'canada' },
+          ...(caseObj.hearingDate ? [{ date: caseObj.hearingDate, event: 'RPD hearing scheduled', type: 'canada' }] : []),
+        ],
+        geopoliticalContext: {
+          summary: `${caseObj.country} continues to face significant human rights challenges relevant to claims based on ${ground.replace(/_/g, ' ')}. International monitoring organizations have documented systematic patterns of persecution, including restrictions on civil liberties, extrajudicial actions by security forces, and inadequate state protection for vulnerable populations.\n\nRecent developments (2024-2026) indicate that conditions have not substantially improved. ${caseObj.detailTag === 'State actor' ? 'Reports of state-sponsored persecution remain a primary concern, with multiple documented cases of political dissidents and civil society members facing harassment, detention, and violence.' : 'Non-state actors continue to operate with impunity in several regions, and the state\'s capacity to provide adequate protection remains limited.'} The current National Documentation Package should be reviewed for the most recent country condition evidence.`,
+          sources: [
+            { name: 'Amnesty International — Annual Report', url: `https://www.amnesty.org/en/location/${caseObj.country.toLowerCase().replace(/\s+/g, '-')}/report/`, relevance_note: `Comprehensive human rights assessment for ${caseObj.country}`, year: 2025 },
+            { name: 'Human Rights Watch — World Report', url: `https://www.hrw.org/world-report/2025/country-chapters/${caseObj.country.toLowerCase().replace(/\s+/g, '-')}`, relevance_note: `Detailed documentation of human rights violations in ${caseObj.country}`, year: 2025 },
+            { name: 'UNHCR Refworld', url: `https://www.refworld.org/country/${caseObj.country.toLowerCase().replace(/\s+/g, '')}`, relevance_note: 'Refugee-specific country guidance and COI', year: 2025 },
+            { name: 'US State Dept — Human Rights Report', url: 'https://www.state.gov/reports-bureau-of-democracy-human-rights-and-labor/country-reports-on-human-rights-practices/', relevance_note: `US government assessment of ${caseObj.country}`, year: 2024 },
+            { name: 'Freedom House', url: `https://freedomhouse.org/country/${caseObj.country.toLowerCase().replace(/\s+/g, '-')}`, relevance_note: 'Political rights and civil liberties index', year: 2025 },
+            { name: 'ECOI', url: `https://www.ecoi.net/en/countries/${caseObj.country.toLowerCase().replace(/\s+/g, '-')}/`, relevance_note: 'Aggregated country of origin information', year: 2025 },
+          ],
+        },
+        deadlineFlags: [
+          { name: 'Eligibility interview', dueDate: fmt(eligDate), daysRemaining: daysUntil(eligDate) },
+          { name: 'BOC form submission', dueDate: fmt(bocDate), daysRemaining: daysUntil(bocDate) },
+          { name: 'Document disclosure', dueDate: fmt(discDate), daysRemaining: daysUntil(discDate) },
+          { name: caseObj.hearingDate ? 'RPD hearing' : 'Estimated hearing', dueDate: fmt(hearingEst), daysRemaining: daysUntil(hearingEst) },
+        ],
+        legalExclusionFlags: [
+          { issue: 'Safe Third Country Agreement', severity: 'MEDIUM', irpaSection: 's.101(1)(e)', explanation: `If the claimant entered Canada from the US at a designated port of entry, the STCA may bar the claim. Exceptions include having family in Canada, being an unaccompanied minor, or holding a valid Canadian visa. Verify entry method.` },
+          { issue: 'Prior claims in other countries', severity: 'LOW', irpaSection: 's.101(1)(c.1)', explanation: 'No indication of prior claims in other countries. Confirm with claimant during BOC preparation.' },
+          { issue: 'Security inadmissibility screening', severity: 'LOW', irpaSection: 's.34 IRPA', explanation: 'No indicators of security-related inadmissibility identified. Standard screening applies.' },
+          ...(caseObj.detailTag === 'Minor claimant' ? [{ issue: 'Minor claimant — designated representative required', severity: 'HIGH', irpaSection: 's.167(2)', explanation: 'The claimant is a minor. A designated representative must be appointed before the RPD hearing. This is a mandatory procedural requirement.' }] : []),
+        ],
+        narrativeFlags: [
+          { issue: 'Gap between last incident and departure', phase: 0, answerId: 'p0-5', quote: 'Timeline indicates a gap between the last persecution event and departure from country of origin.' },
+          { issue: 'State protection claim needs detail', phase: 0, answerId: 'p0-6', quote: 'The claimant\'s account of state protection attempts lacks specificity regarding formal complaints or police reports.' },
+          ...(hasIFA ? [{ issue: 'IFA not addressed', phase: 0, answerId: 'p0-7', quote: 'The Internal Flight Alternative has not been addressed. The IRB will likely raise this issue.' }] : []),
+          { issue: 'Persecutor capacity unclear', phase: 1, answerId: 'p1-4', quote: 'The role, reach, and capacity of the persecutor(s) needs further clarification.' },
+        ],
+        conventionGroundAnalysis: `Primary ground: ${ground.replace(/_/g, ' ')} under IRPA s.96. The claimant from ${caseObj.country} describes persecution consistent with the Convention refugee definition. ${caseObj.legalCategory.includes('97') ? 'A parallel s.97(1) claim for risk to life or cruel and unusual treatment should also be considered.' : ''} The claim strength is assessed as ${caseObj.claimStrength.toLowerCase()}.`,
+        narrativeAssessment: 'The narrative provides a substantive foundation but requires targeted supplementation in the flagged areas. Timeline gaps and state protection documentation are the primary areas for counsel attention. These gaps should be explored compassionately — they may reflect trauma, memory fragmentation, or language barriers.',
+        recommendedActions: [
+          'Obtain a detailed statutory declaration addressing timeline gaps between key incidents',
+          'Document state protection attempts with specificity, or explain why formal channels were unavailable',
+          hasIFA ? 'Prepare a comprehensive IFA rebuttal supported by current country condition reports' : 'Review IFA position and prepare supporting country condition evidence',
+          'Identify and collect any available corroborating evidence (medical, documentary, testimonial)',
+          'Review National Documentation Package for updated country conditions',
+        ],
+        irpaCitations: [
+          's.96 — Convention refugee: well-founded fear of persecution for reasons of race, religion, nationality, membership in a particular social group, or political opinion',
+          's.97(1) — Person in need of protection: risk to life, or risk of cruel and unusual treatment or punishment',
+          's.97(1)(a) — Danger of torture as defined under Article 1 of the Convention Against Torture',
+          's.100(1) — Referral of eligible claim to the Refugee Protection Division',
+          's.170 — RPD proceedings shall be conducted informally and quickly as fairness permits',
+        ],
+        riskLevel: isStrong ? 'low' : (caseObj.claimStrength === 'Weak' ? 'high' : 'medium'),
+        estimatedProcessingNotes: `Standard RPD processing. ${caseObj.hearingDate ? 'Hearing date scheduled — prioritize BOC preparation.' : 'No hearing date yet — use this time to strengthen the file.'} ${caseObj.detailTag === 'Minor claimant' ? 'Minor claimant protocols apply — designated representative required.' : ''}`,
+      }
+    })(),
     resources: [
       { name: 'PRAIDA', description: 'Programme régional d\'accueil et d\'intégration des demandeurs d\'asile — health and social services', contact: '514-484-7878', relevance: 'Primary social services for asylum seekers in Montreal' },
       { name: 'Aide juridique du Québec', description: 'Free legal aid for eligible asylum seekers', contact: 'www.ajquebec.qc.ca', relevance: 'Legal representation for IRB hearings' },
