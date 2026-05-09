@@ -1,6 +1,21 @@
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 
+const RESOURCE_LABELS = {
+  'shelter':       { fr: 'Hébergement temporaire', en: 'Temporary shelter' },
+  'housing':       { fr: 'Aide pour trouver un logement permanent', en: 'Assistance finding permanent housing' },
+  'info-sessions': { fr: "Sessions d'information sur la vie au Québec", en: 'Information sessions on life in Québec' },
+  'financial-aid': { fr: "Aide financière de dernier recours", en: 'Last resort financial assistance' },
+  'education':     { fr: 'Éducation préscolaire, primaire et secondaire', en: 'Preschool, elementary and secondary education' },
+  'childcare':     { fr: 'Services de garde à faible coût', en: 'Low-cost childcare services' },
+  'employment':    { fr: "Services universels d'emploi", en: 'Universal employment services' },
+  'french':        { fr: 'Cours de français', en: 'French courses' },
+  'legal':         { fr: 'Assistance juridique', en: 'Legal assistance' },
+  'praida-social': { fr: 'Services sociaux PRAIDA — composante psychosociale', en: 'PRAIDA psychosocial services (social work)' },
+  'praida-health': { fr: 'Services de santé PRAIDA — soins préventifs et de première ligne', en: 'PRAIDA health services — preventive and primary care' },
+  'federal-health':{ fr: 'Services de santé via le Programme fédéral de santé intérimaire', en: 'Federal Interim Health Program' },
+}
+
 // Translation keys for each phase's questions
 const PHASE0_KEYS = [
   'p0q1.prompt', 'p0q2.prompt', 'p0q3.prompt',
@@ -164,14 +179,128 @@ function Section({ titleFr, titleEn, editRoute, questions, navigate }) {
   )
 }
 
+function ResourcesSection({ services, navigate }) {
+  const selectedIds = Array.isArray(services) ? services : []
+  return (
+    <div
+      style={{
+        background: 'var(--color-card)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-card)',
+        padding: '1.5rem',
+        marginBottom: '1.25rem',
+        width: '100%',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '1.25rem',
+        }}
+      >
+        <div>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.15rem',
+              fontWeight: 600,
+              color: 'var(--color-text)',
+              lineHeight: 1.3,
+              marginBottom: '0.2rem',
+            }}
+          >
+            Questions sensibles
+          </h2>
+          <span style={{ fontSize: '0.78rem', color: 'var(--color-muted)' }}>
+            Sensitive questions
+          </span>
+        </div>
+        <button
+          onClick={() => navigate('/seeker/interview/3')}
+          style={{
+            padding: '0.4rem 0.9rem',
+            background: 'transparent',
+            border: '1.5px solid var(--color-border)',
+            borderRadius: 'var(--radius-btn)',
+            fontSize: '0.85rem',
+            fontWeight: 500,
+            color: 'var(--color-primary)',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            minHeight: 36,
+            flexShrink: 0,
+            marginLeft: '1rem',
+          }}
+        >
+          Modifier / Edit
+        </button>
+      </div>
+
+      <p
+        style={{
+          fontSize: '0.78rem',
+          fontWeight: 600,
+          color: 'var(--color-muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.04em',
+          marginBottom: '0.75rem',
+        }}
+      >
+        Ressources sélectionnées / Selected resources
+      </p>
+
+      {selectedIds.length === 0 ? (
+        <p style={{ fontSize: '0.92rem', color: 'var(--color-border)', fontStyle: 'italic' }}>
+          Non répondu / Unanswered
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {selectedIds.map((id) => {
+            const label = RESOURCE_LABELS[id]
+            return (
+              <div
+                key={id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '0.6rem',
+                  padding: '0.6rem 0.75rem',
+                  background: 'rgba(13, 92, 58, 0.05)',
+                  border: '1px solid rgba(13, 92, 58, 0.15)',
+                  borderRadius: 8,
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true">
+                  <path d="M3 8L7 12L13 5" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text)', lineHeight: 1.4 }}>
+                    {label ? label.fr : id}
+                  </span>
+                  {label && (
+                    <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--color-muted)', lineHeight: 1.4 }}>
+                      {label.en}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function SeekerReview() {
   const {
     t,
     interviewPhase0,
     interviewAnswers,
     interviewPhase1,
-    interviewPhase2,
-    aiInterviewQuestions,
+    interviewPhase3,
   } = useApp()
   const navigate = useNavigate()
 
@@ -201,15 +330,6 @@ export default function SeekerReview() {
       questions: PHASE2_KEYS.map((key, i) => ({
         label: t(key),
         answer: interviewPhase1[i],
-      })),
-    },
-    {
-      titleFr: 'Questions sensibles',
-      titleEn: 'Sensitive questions',
-      editRoute: '/seeker/interview/3',
-      questions: (aiInterviewQuestions || []).map((q, i) => ({
-        label: q,
-        answer: interviewPhase2[i],
       })),
     },
   ]
@@ -272,6 +392,10 @@ export default function SeekerReview() {
             navigate={navigate}
           />
         ))}
+        <ResourcesSection
+          services={interviewPhase3?.services}
+          navigate={navigate}
+        />
       </div>
 
       {/* Fixed bottom actions */}

@@ -83,7 +83,7 @@ export default function InterviewPhase3() {
 
   const handleFinish = () => {
     setInterviewPhase3({ services: [...selected], submitted: true })
-    navigate('/seeker/report')
+    navigate('/seeker/review')
   }
 
   return (
