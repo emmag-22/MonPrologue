@@ -164,62 +164,64 @@ The seeker portal and clinic portal are deliberately designed for two completely
 | Fonts | Fraunces (display) + DM Sans (UI) |
 | State management | React Context API |
 | Legal reasoning | OpenJustice platform (Conflict Analytics Lab, Queen's University) |
-| AI model | Claude (`claude-sonnet-4-20250514`) via Anthropic API |
+| Backend | Express.js (API proxy, Firestore writes) |
+| Database | Firebase Firestore (case storage, clinic access) |
+| AI model | Claude (`claude-sonnet-4-6`) via Anthropic API (server-side proxy) |
 | Voice input | Web Speech API (browser-native) |
-| Country intelligence | IRB NDP + HRW / Amnesty / UNHCR / State Dept. live feeds |
-| Session management | PIN-based, no persistent auth on seeker side |
-| Clinic auth | Credential login |
+| Country intelligence | AI-generated summaries with source links (HRW, Amnesty, UNHCR, State Dept., Freedom House, ECOI) |
+| Session management | PIN-based; case data persisted to Firestore on submission |
+| Clinic auth | Hardcoded credentials (hackathon demo) |
+| Languages | French (default), English, Spanish, Haitian Creole, Arabic (translations in AppContext; UI exposes 20 language options) |
 
 ---
 
 ## Project Structure
 
 ```
-refuge/
+mon-prologue/
 ├── src/
 │   ├── App.jsx
 │   ├── main.jsx
 │   ├── index.css
 │   │
 │   ├── context/
-│   │   └── AppContext.jsx           # Language, role, session PIN, t() helper
+│   │   └── AppContext.jsx              # Language, role, session state, all UI translations, t() helper
 │   │
 │   ├── pages/
-│   │   ├── Landing.jsx              # Language bar + role selection
+│   │   ├── Landing.jsx                 # Language switcher + role selection
+│   │   ├── Landing.module.css
+│   │   ├── SeekerShell.jsx             # Layout wrapper for seeker flow
+│   │   ├── SeekerWelcome.jsx           # "You are safe here"
+│   │   ├── ClinicShell.jsx             # Layout wrapper for clinic flow
+│   │   ├── ClinicLogin.jsx             # Credential login
+│   │   ├── ClinicDashboard.jsx         # Case triage list
+│   │   ├── CaseDossier.jsx             # Full AI-analyzed case view
 │   │   │
-│   │   ├── seeker/
-│   │   │   ├── SeekerShell.jsx
-│   │   │   ├── SeekerWelcome.jsx    # "You are safe here"
-│   │   │   ├── PreQuestions.jsx     # Age group, sex, country
-│   │   │   ├── InterviewPhase1.jsx  # Template guided questions
-│   │   │   ├── InterviewPhase2.jsx  # AI-curated follow-ups
-│   │   │   ├── SeekerReport.jsx     # Plain-language seeker summary
-│   │   │   └── ShareWithClinic.jsx  # Consent + handoff
-│   │   │
-│   │   └── clinic/
-│   │       ├── ClinicShell.jsx
-│   │       ├── ClinicLogin.jsx
-│   │       ├── ClinicDashboard.jsx  # Case triage list
-│   │       └── CaseDossier.jsx      # Full AI-analyzed case view
+│   │   └── seeker/
+│   │       ├── InterviewPhase0.jsx     # Preliminary questions (country, province, sex, age, arrival)
+│   │       ├── InterviewPhase1.jsx     # 16-question narrative interview
+│   │       ├── InterviewPhase2.jsx     # AI-curated follow-up questions
+│   │       ├── InterviewPhase3.jsx     # Resources checklist
+│   │       ├── SeekerReport.jsx        # Plain-language seeker summary
+│   │       ├── SeekerReview.jsx        # Answer review before submission
+│   │       ├── SeekerClinicSelect.jsx  # Clinic selection
+│   │       ├── SeekerContact.jsx       # Contact info + case submission to Firestore
+│   │       └── PinDisplay.jsx          # Session PIN display
 │   │
 │   ├── components/
-│   │   ├── LanguageBar.jsx
-│   │   ├── RoleCard.jsx
-│   │   ├── QuestionScreen.jsx
-│   │   ├── MicButton.jsx
-│   │   ├── ConfirmBubble.jsx
-│   │   ├── PinSave.jsx
-│   │   ├── DossierCard.jsx
-│   │   ├── FlagBadge.jsx
-│   │   └── CountrySignal.jsx
+│   │   ├── LanguageSwitcher.jsx        # Language selector (20 language options)
+│   │   ├── Logo.jsx                    # Door logo + wordmark (sm / lg variants)
+│   │   ├── MicButton.jsx               # Voice input (Web Speech API)
+│   │   ├── ConfirmBubble.jsx           # "Is that right?" confirmation loop
+│   │   └── TimelineComponent.jsx       # Event timeline for clinic dossier
 │   │
 │   └── lib/
-│       ├── openjustice.js           # OpenJustice reasoning flow execution
-│       ├── claude.js                # Claude API — BOC narrative generation
-│       ├── countryIntelligence.js   # Live feed aggregation
-│       ├── translations.js          # All UI strings (FR/EN/ES/HT)
-│       └── countries.js             # Country list + NDP metadata
+│       ├── assessment.js               # Answer serialization, AI assessment calls, mock fallbacks
+│       ├── openjustice.js              # OpenJustice API client + similar-case search
+│       ├── claude.js                   # Claude API — question generation + BOC narrative
+│       └── mockCases.js                # Sample case data for clinic dashboard demo
 │
+├── server.js                           # Express backend (proxies Claude + OpenJustice, writes to Firestore)
 ├── public/
 ├── index.html
 ├── vite.config.js
@@ -341,9 +343,11 @@ This tool does not constitute legal advice.
 ## Environment Variables
 
 ```env
-VITE_ANTHROPIC_API_KEY=           # Claude API key
-VITE_OPENJUSTICE_API_KEY=         # OpenJustice API key (provided at hackathon)
-VITE_OPENJUSTICE_FLOW_ID=         # ID of the deployed reasoning flow
+ANTHROPIC_API_KEY=           # Claude API key (server-side — never exposed to browser)
+OPENJUSTICE_API_KEY=         # OpenJustice API key (provided at hackathon)
+OPENJUSTICE_FLOW_ID=         # ID of the deployed reasoning flow
+PORT=3001                    # Backend server port (optional, defaults to 3001)
+GCP_PROJECT_ID=              # Firebase project ID (optional, defaults to "dueprocessors")
 ```
 
 ---
@@ -351,8 +355,8 @@ VITE_OPENJUSTICE_FLOW_ID=         # ID of the deployed reasoning flow
 ## Setup
 
 ```bash
-git clone https://github.com/your-team/refuge.git
-cd refuge
+git clone https://github.com/emmag-22/MonPrologue.git
+cd MonPrologue
 npm install
 cp .env.example .env
 # Add your API keys to .env
@@ -367,11 +371,15 @@ npm run dev
 |---|---|---|
 | `/` | Landing — language + role selection | Public |
 | `/seeker` | Seeker welcome | Public |
-| `/seeker/pre` | Pre-questions (age, sex, country) | Public |
-| `/seeker/interview/1` | Interview Phase 1 — guided story | Public |
-| `/seeker/interview/2` | Interview Phase 2 — AI follow-ups | Public |
-| `/seeker/report` | Seeker plain-language report | Public |
-| `/seeker/share` | Consent + clinic handoff | Public |
+| `/seeker/clinic-select` | Clinic selection | Public |
+| `/seeker/pin` | Session PIN display | Public |
+| `/seeker/interview/0` | Phase 0 — preliminary questions (country, province, sex, age, arrival) | Public |
+| `/seeker/interview/1` | Phase 1 — 16-question narrative interview | Public |
+| `/seeker/interview/2` | Phase 2 — AI-generated follow-up questions | Public |
+| `/seeker/interview/3` | Phase 3 — resources checklist | Public |
+| `/seeker/report` | Seeker plain-language summary | Public |
+| `/seeker/review` | Answer review before submission | Public |
+| `/seeker/contact` | Contact info + case submission to clinic | Public |
 | `/clinic` | Clinic login | Public |
 | `/clinic/dashboard` | Case triage dashboard | Clinic auth |
 | `/clinic/case/:id` | Full case dossier | Clinic auth |
