@@ -48,7 +48,8 @@
 /* Identity */
 .identity {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 3.5rem;
+  padding-top: 0.5rem;
 }
 
 .appName {
@@ -64,7 +65,8 @@
 .tagline {
   font-size: 1.2rem;
   color: var(--color-text);
-  margin-bottom: 1rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
   max-width: 420px;
 }
 
@@ -73,6 +75,7 @@
   color: var(--color-muted);
   max-width: 440px;
   line-height: 1.5;
+  margin-top: 0.5rem;
 }
 
 /* Role cards */
