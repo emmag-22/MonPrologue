@@ -173,15 +173,72 @@ function getMockPhase1Assessment(language) {
   }
 }
 
+/**
+ * Build transcript from all interview phases for the appendix.
+ */
+export function buildTranscript(interviewAnswers, interviewPhase1, interviewPhase2) {
+  const lines = []
+  const addQA = (phase, label, questions, answers, labelPrefix) => {
+    lines.push(`\n=== ${phase} ===\n`)
+    for (let i = 0; i < questions.length; i++) {
+      const id = `${labelPrefix}-${i}`
+      const q = questions[i]
+      const a = serializeAnswer(answers[i])
+      lines.push({ id, q, a })
+    }
+  }
+
+  const P0_QUESTIONS = [
+    'How do you identify?', 'Which age group are you in?', 'What country are you from?',
+    'Why are you afraid to return?', 'Tell us what happened.', 'Important dates.',
+    'Did you ask authorities for help?', 'Is there a safe region in your country?',
+    'Where in Canada do you live and for how long?',
+  ]
+  const P1_QUESTIONS = [
+    'Tell us about your childhood.', 'Your religion, ethnicity, or political affiliation?',
+    'Life before problems began?', 'When did problems start?', 'Who was responsible?',
+    'Sequence of main events?', 'Were others affected?', 'Contact with police or authorities?',
+    'Why authorities were not contacted?', 'Final event that triggered leaving?',
+    'How did you leave?', 'Transit countries?', 'Fear of return?',
+    'Has the situation changed?', 'Safe internal relocation?', 'Can persecutors find you?',
+  ]
+
+  addQA('Phase 0 — Preliminary Information', '', P0_QUESTIONS, interviewAnswers, 'p0')
+  if (interviewPhase1 && Object.keys(interviewPhase1).length > 0) {
+    addQA('Phase 1 — Your Story', '', P1_QUESTIONS, interviewPhase1, 'p1')
+  }
+  if (interviewPhase2 && Object.keys(interviewPhase2).length > 0) {
+    const p2Questions = Object.keys(interviewPhase2).map((_, i) => `Follow-up question ${i + 1}`)
+    addQA('Phase 2 — Follow-up Questions', '', p2Questions, interviewPhase2, 'p2')
+  }
+
+  return lines
+}
+
 function getMockFullAssessment(interviewAnswers, language) {
   const country = serializeAnswer(interviewAnswers[2]) || 'Unknown'
   const ground = serializeAnswer(interviewAnswers[3]) || 'political'
   const fr = language === 'fr'
+  const arrivedRaw = interviewAnswers[5]?.arrived || '2024-01'
+  const arrivedDate = new Date(arrivedRaw + '-01')
+  const now = new Date()
 
   const groundLabel = {
     race: 'Race or ethnicity', religion: 'Religion', nationality: 'Nationality',
     political: 'Political opinion', psg: 'Particular social group',
   }[ground] || ground
+
+  // Calculate IRPA deadlines from arrival
+  const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r }
+  const daysUntil = (d) => Math.round((d.getTime() - now.getTime()) / 86400000)
+  const fmtDate = (d) => d.toISOString().split('T')[0]
+
+  const eligibilityDate = addDays(arrivedDate, 3)
+  const bocDeadline = addDays(eligibilityDate, 15)
+  const hearingEst = addDays(arrivedDate, 120)
+  const disclosureDeadline = addDays(hearingEst, -10)
+
+  const caseId = `REF-2026-${String(Math.floor(1000 + Math.random() * 9000))}`
 
   return {
     conventionGround: {
@@ -211,6 +268,44 @@ function getMockFullAssessment(interviewAnswers, language) {
         : 'You are safe in Canada. No one can send you back without a full hearing. You have the right to be heard.',
     },
     clinicReport: {
+      caseId,
+      priority: daysUntil(bocDeadline) < 7 ? 'URGENT' : daysUntil(bocDeadline) < 30 ? 'HIGH' : 'NORMAL',
+      currentStatus: daysUntil(bocDeadline) > 0 ? 'Awaiting BOC submission' : 'BOC deadline passed — expedite',
+      narrativeSummary: `The claimant, a ${serializeAnswer(interviewAnswers[0])} aged ${serializeAnswer(interviewAnswers[1])} from ${country}, claims refugee protection on the basis of ${groundLabel}. The claimant reports persecution beginning in their country of origin and describes seeking safety in Canada, where they have resided for ${serializeAnswer(interviewAnswers[8]) || 'an unspecified period'}. The claimant states they did not seek or could not obtain adequate state protection. The Internal Flight Alternative has not been fully addressed in the current narrative.`,
+      timelineEvents: [
+        { date: interviewAnswers[5]?.incidents || '2021-08', event: 'First persecution incident reported', type: 'persecution' },
+        { date: interviewAnswers[5]?.left || '2022-03', event: `Departed ${country}`, type: 'travel' },
+        { date: interviewAnswers[5]?.arrived || '2024-01', event: 'Arrived in Canada', type: 'canada' },
+        { date: fmtDate(eligibilityDate), event: 'Eligibility interview (estimated)', type: 'canada' },
+        { date: fmtDate(bocDeadline), event: 'BOC form deadline', type: 'canada' },
+      ],
+      geopoliticalContext: {
+        summary: `${country} has experienced significant political instability and human rights concerns relevant to claims based on ${groundLabel}. International monitoring organizations have documented ongoing patterns of persecution affecting individuals associated with ${groundLabel.toLowerCase()} in the country. Recent reports indicate that conditions have not substantially improved, and in some areas have deteriorated, particularly for members of vulnerable groups.\n\nThe state's capacity or willingness to provide adequate protection to individuals facing persecution on these grounds remains a documented concern. Multiple authoritative sources have identified systemic failures in the justice system and security apparatus that leave claimants in situations similar to the present case without effective state recourse.`,
+        sources: [
+          { name: 'Amnesty International — Country Report', url: `https://www.amnesty.org/en/location/${country.toLowerCase().replace(/\s+/g, '-')}/report/`, relevance_note: `Annual human rights assessment for ${country}`, year: 2025 },
+          { name: 'Human Rights Watch — World Report', url: `https://www.hrw.org/world-report/2025/country-chapters/${country.toLowerCase().replace(/\s+/g, '-')}`, relevance_note: `Comprehensive human rights documentation for ${country}`, year: 2025 },
+          { name: 'UNHCR Refworld — Country Profile', url: `https://www.refworld.org/country/${country.toLowerCase().replace(/\s+/g, '')}`, relevance_note: `Refugee-specific country guidance and COI`, year: 2025 },
+          { name: 'US State Department — Human Rights Report', url: 'https://www.state.gov/reports-bureau-of-democracy-human-rights-and-labor/country-reports-on-human-rights-practices/', relevance_note: `US government assessment of human rights practices in ${country}`, year: 2024 },
+          { name: 'Freedom House — Freedom in the World', url: `https://freedomhouse.org/country/${country.toLowerCase().replace(/\s+/g, '-')}`, relevance_note: `Political rights and civil liberties assessment`, year: 2025 },
+          { name: 'ECOI — Country of Origin Information', url: `https://www.ecoi.net/en/countries/${country.toLowerCase().replace(/\s+/g, '-')}/`, relevance_note: `Aggregated COI from multiple sources`, year: 2025 },
+        ],
+      },
+      deadlineFlags: [
+        { name: 'Eligibility interview', dueDate: fmtDate(eligibilityDate), daysRemaining: daysUntil(eligibilityDate) },
+        { name: 'BOC form submission', dueDate: fmtDate(bocDeadline), daysRemaining: daysUntil(bocDeadline) },
+        { name: 'Document disclosure', dueDate: fmtDate(disclosureDeadline), daysRemaining: daysUntil(disclosureDeadline) },
+        { name: 'Estimated hearing', dueDate: fmtDate(hearingEst), daysRemaining: daysUntil(hearingEst) },
+      ],
+      legalExclusionFlags: [
+        { issue: 'Safe Third Country Agreement', severity: interviewAnswers[10]?.choice === 'land' ? 'HIGH' : 'LOW', irpaSection: 's.101(1)(e)', explanation: 'If the claimant entered Canada from the US at a land port of entry, the STCA may apply. Exceptions include having family in Canada, being an unaccompanied minor, or holding a valid Canadian visa.' },
+        { issue: 'Prior claim in another country', severity: 'LOW', irpaSection: 's.101(1)(c.1)', explanation: 'If the claimant has made a prior refugee claim in another country, their eligibility in Canada may be affected under the multi-country bar.' },
+        { issue: 'Security inadmissibility', severity: 'LOW', irpaSection: 's.34', explanation: 'No indicators of security-related inadmissibility identified in the current narrative.' },
+      ],
+      narrativeFlags: [
+        { issue: '6-month gap between last incident and departure', phase: 0, answerId: 'p0-5', quote: serializeAnswer(interviewAnswers[5]) },
+        { issue: 'State protection claim lacks specificity', phase: 0, answerId: 'p0-6', quote: serializeAnswer(interviewAnswers[6]) },
+        { issue: 'IFA not addressed', phase: 0, answerId: 'p0-7', quote: serializeAnswer(interviewAnswers[7]) },
+      ],
       conventionGroundAnalysis: `Primary ground: ${groundLabel} under IRPA s.96. The claimant describes persecution consistent with the Convention definition. Further documentation of the specific acts of persecution would strengthen the claim.`,
       narrativeAssessment: 'The narrative provides a foundation but requires additional detail in several areas. Timeline gaps and state protection analysis need attention before the BOC is finalized. These gaps should be explored compassionately — they may reflect trauma or translation issues.',
       recommendedActions: [
@@ -227,10 +322,10 @@ function getMockFullAssessment(interviewAnswers, language) {
       estimatedProcessingNotes: 'Standard RPD processing. No expedited processing indicators identified.',
     },
     resources: [
-      { name: 'PRAIDA (Programme régional d\'accueil et d\'intégration des demandeurs d\'asile)', description: 'Health and social services for asylum seekers in Montreal', contact: '514-484-7878', relevance: 'Primary social services support for asylum seekers in Quebec' },
+      { name: 'PRAIDA', description: 'Health and social services for asylum seekers in Montreal', contact: '514-484-7878', relevance: 'Primary social services support for asylum seekers in Quebec' },
       { name: 'Aide juridique du Québec', description: 'Free legal aid for eligible asylum seekers', contact: 'www.ajquebec.qc.ca', relevance: 'Legal representation for the IRB hearing' },
-      { name: 'Centre social d\'aide aux immigrants (CSAI)', description: 'Settlement services, language classes, employment support', contact: '514-932-2953', relevance: 'Integration support while claim is pending' },
-      { name: 'Table de concertation des organismes au service des personnes réfugiées et immigrantes (TCRI)', description: 'Network of organizations serving refugees', contact: 'www.tcri.qc.ca', relevance: 'Can connect to specialized services based on needs' },
+      { name: 'CSAI', description: 'Settlement services, language classes, employment support', contact: '514-932-2953', relevance: 'Integration support while claim is pending' },
+      { name: 'TCRI', description: 'Network of organizations serving refugees', contact: 'www.tcri.qc.ca', relevance: 'Can connect to specialized services based on needs' },
     ],
   }
 }

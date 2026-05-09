@@ -89,3 +89,97 @@ a:hover {
     transform: translateY(0);
   }
 }
+
+/* ── Print stylesheet for clinic PDF reports ── */
+@media print {
+  /* Hide non-report elements */
+  body {
+    background: white !important;
+    background-image: none !important;
+    color: #000 !important;
+    font-size: 12pt !important;
+    line-height: 1.5 !important;
+  }
+
+  .no-print,
+  nav,
+  [aria-label="Language selection"] {
+    display: none !important;
+  }
+
+  /* Only show the clinic report */
+  #root > * {
+    display: none !important;
+  }
+  #root > *:has(#clinic-report) {
+    display: block !important;
+  }
+  #clinic-report {
+    padding: 0 !important;
+  }
+
+  /* Force readable colors */
+  * {
+    color: #1a1a18 !important;
+    background: white !important;
+    border-color: #ccc !important;
+    box-shadow: none !important;
+  }
+
+  /* Cards get visible borders */
+  #clinic-report div[style*="border-radius"] {
+    border: 1px solid #ccc !important;
+    page-break-inside: avoid;
+  }
+
+  /* Section breaks */
+  .print-break {
+    page-break-before: always;
+  }
+
+  /* Timeline keeps structure */
+  #clinic-report div[style*="position: absolute"][style*="width: 2"] {
+    background: #999 !important;
+  }
+
+  /* Colored badges print with borders */
+  span[style*="border-radius: 999"] {
+    border: 1px solid #999 !important;
+    background: transparent !important;
+  }
+
+  /* Links show URL */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #666 !important;
+    word-break: break-all;
+  }
+  a[href^="javascript"]:after,
+  a[href^="#"]:after {
+    content: "";
+  }
+
+  /* Page footer */
+  @page {
+    margin: 2cm 1.5cm;
+    @bottom-center {
+      content: "Refuge Legal Report — Confidential — Not legal advice";
+      font-size: 8pt;
+      color: #999;
+    }
+  }
+
+  /* Bump font for readability */
+  p, li, span {
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Labels stay small */
+  p[style*="0.6rem"],
+  p[style*="0.62rem"],
+  p[style*="0.58rem"] {
+    font-size: 8pt !important;
+  }
+}
