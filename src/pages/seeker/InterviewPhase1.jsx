@@ -313,23 +313,25 @@ function DoneScreen({ onSubmit, t }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function InterviewPhase1() {
-  const { t, language, setInterviewPhase1 } = useApp()
+  const { t, language, interviewPhase1, setInterviewPhase1, phase1Index, setPhase1Index } = useApp()
   const navigate = useNavigate()
   const lang = LANG_BCP47[language] || 'fr-FR'
 
-  const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState({})
-  const [draft, setDraft] = useState(null)
+  const initialStep = Math.min(phase1Index, TOTAL - 1)
+  const [step, setStep] = useState(initialStep)
+  const [answers, setAnswers] = useState(interviewPhase1 || {})
+  const [draft, setDraft] = useState((interviewPhase1 || {})[initialStep] ?? null)
   const [done, setDone] = useState(false)
 
   const commitAndAdvance = (val) => {
     const saved = { ...answers, [step]: val }
     setAnswers(saved)
+    setInterviewPhase1(saved)
     setDraft(null)
     if (step < TOTAL - 1) {
       setStep((s) => s + 1)
+      setPhase1Index(step + 1)
     } else {
-      setInterviewPhase1(saved)
       setDone(true)
     }
   }
@@ -345,8 +347,8 @@ export default function InterviewPhase1() {
     setDraft(null)
     if (step < TOTAL - 1) {
       setStep((s) => s + 1)
+      setPhase1Index(step + 1)
     } else {
-      setInterviewPhase1(answers)
       setDone(true)
     }
   }
@@ -354,11 +356,13 @@ export default function InterviewPhase1() {
   const handlePrev = () => {
     setDraft(answers[step - 1] ?? null)
     setStep((s) => Math.max(s - 1, 0))
+    setPhase1Index(step - 1)
   }
 
   const handleGoTo = (i) => {
     setDraft(answers[i] ?? null)
     setStep(i)
+    setPhase1Index(i)
   }
 
   const nextEnabled = () => {

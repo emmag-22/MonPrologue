@@ -692,7 +692,10 @@ export function AppProvider({ children }) {
   const [interviewAnswers, setInterviewAnswers] = useState({})
   const [interviewPhase1, setInterviewPhase1] = useState({})
   const [interviewPhase2, setInterviewPhase2] = useState({})
-  const [interviewPhase3, setInterviewPhase3] = useState(null)
+  const [interviewPhase3, setInterviewPhase3] = useState({})
+  const [phase0Index, setPhase0Index] = useState(0)
+  const [phase1Index, setPhase1Index] = useState(0)
+  const [phase2Index, setPhase2Index] = useState(0)
   const [aiInterviewQuestions, setAiInterviewQuestions] = useState([])
   const [contactInfo, setContactInfo] = useState(null)
   const [clinicAuth, setClinicAuth] = useState(null)
@@ -710,7 +713,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider
-      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, selectedClinic, setSelectedClinic, interviewPhase0, setInterviewPhase0, interviewAnswers, setInterviewAnswers, interviewPhase1, setInterviewPhase1, interviewPhase2, setInterviewPhase2, interviewPhase3, setInterviewPhase3, aiInterviewQuestions, setAiInterviewQuestions, contactInfo, setContactInfo, clinicAuth, setClinicAuth, isAuthenticated, cases: mockCases, t }}
+      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, selectedClinic, setSelectedClinic, interviewPhase0, setInterviewPhase0, interviewAnswers, setInterviewAnswers, interviewPhase1, setInterviewPhase1, interviewPhase2, setInterviewPhase2, interviewPhase3, setInterviewPhase3, phase0Index, setPhase0Index, phase1Index, setPhase1Index, phase2Index, setPhase2Index, aiInterviewQuestions, setAiInterviewQuestions, contactInfo, setContactInfo, clinicAuth, setClinicAuth, isAuthenticated, cases: mockCases, t }}
     >
       {children}
     </AppContext.Provider>

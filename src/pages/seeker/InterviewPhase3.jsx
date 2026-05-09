@@ -68,15 +68,18 @@ const RESOURCES = [
 const RESOURCES_PDF = 'https://cdn-contenu.quebec.ca/cdn-contenu/immigration/publications/en/GUI_asylum_seeker.pdf'
 
 export default function InterviewPhase3() {
-  const { t, setInterviewPhase3 } = useApp()
+  const { t, interviewPhase3, setInterviewPhase3 } = useApp()
   const navigate = useNavigate()
-  const [selected, setSelected] = useState(new Set())
+  const [selected, setSelected] = useState(
+    interviewPhase3?.services ? new Set(interviewPhase3.services) : new Set()
+  )
 
   const toggle = (id) => {
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
+      setInterviewPhase3({ services: [...next] })
       return next
     })
   }

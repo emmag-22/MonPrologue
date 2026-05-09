@@ -234,39 +234,49 @@ function DoneScreen({ onSubmit, t }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function InterviewPhase2() {
-  const { t, language, interviewPhase0, interviewPhase1, setInterviewPhase2 } = useApp()
+  const { t, language, interviewPhase0, interviewPhase1, interviewPhase2, setInterviewPhase2, aiInterviewQuestions, setAiInterviewQuestions, phase2Index, setPhase2Index } = useApp()
   const navigate = useNavigate()
   const speechLang = LANG_BCP47[language] || 'fr-FR'
   const langName = LANG_NAMES[language] || 'French'
 
-  const [status, setStatus] = useState('loading') // loading | error | interview | done
-  const [questions, setQuestions] = useState([])
-  const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState({})
-  const [draft, setDraft] = useState('')
+  const hasCache = aiInterviewQuestions.length > 0
+  const safeInitialStep = hasCache ? Math.min(phase2Index, aiInterviewQuestions.length - 1) : 0
+
+  const [status, setStatus] = useState(hasCache ? 'interview' : 'loading')
+  const [questions, setQuestions] = useState(aiInterviewQuestions)
+  const [step, setStep] = useState(safeInitialStep)
+  const [answers, setAnswers] = useState(interviewPhase2 || {})
+  const [draft, setDraft] = useState((interviewPhase2 || {})[safeInitialStep] || '')
 
   const load = useCallback(async () => {
     setStatus('loading')
     try {
       const context = serializeAnswers(interviewPhase0, interviewPhase1)
       const qs = await fetchAIQuestions(context, langName)
-      setQuestions(Array.isArray(qs) ? qs : [])
+      const fetched = Array.isArray(qs) ? qs : []
+      setQuestions(fetched)
+      setAiInterviewQuestions(fetched)
       setStatus('interview')
     } catch {
       setStatus('error')
     }
-  }, [interviewPhase0, interviewPhase1, langName])
+  }, [interviewPhase0, interviewPhase1, langName, setAiInterviewQuestions])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (!hasCache) {
+      load()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleNext = () => {
     const saved = { ...answers, [step]: draft }
     setAnswers(saved)
+    setInterviewPhase2(saved)
     setDraft('')
     if (step < questions.length - 1) {
       setStep((s) => s + 1)
+      setPhase2Index(step + 1)
     } else {
-      setInterviewPhase2(saved)
       setStatus('done')
     }
   }
@@ -275,8 +285,8 @@ export default function InterviewPhase2() {
     setDraft('')
     if (step < questions.length - 1) {
       setStep((s) => s + 1)
+      setPhase2Index(step + 1)
     } else {
-      setInterviewPhase2(answers)
       setStatus('done')
     }
   }
@@ -284,6 +294,7 @@ export default function InterviewPhase2() {
   const handlePrev = () => {
     setDraft(answers[step - 1] ?? '')
     setStep((s) => Math.max(s - 1, 0))
+    setPhase2Index(step - 1)
   }
 
   if (status === 'loading') return <LoadingScreen t={t} />

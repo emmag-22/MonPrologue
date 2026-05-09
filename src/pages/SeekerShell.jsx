@@ -32,7 +32,7 @@ function PhaseNavBar({ t, interviewPhase0, interviewPhase1, interviewPhase2, int
     ...(hasData(interviewPhase0) ? [0] : []),
     ...(hasData(interviewPhase1) ? [1] : []),
     ...(hasData(interviewPhase2) ? [2] : []),
-    ...(interviewPhase3 !== null ? [3] : []),
+    ...(interviewPhase3?.submitted === true ? [3] : []),
   ])
 
   const PHASES = [
