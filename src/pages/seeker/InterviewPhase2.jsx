@@ -19,26 +19,7 @@ const LANG_NAMES = {
   ur: 'Urdu', sw: 'Swahili', wo: 'Wolof', ru: 'Russian',
 }
 
-const SYSTEM_PROMPT = `You are a compassionate legal intake assistant helping an asylum seeker tell their story.
-Based on their answers so far, generate 5-7 follow-up questions that help them provide
-more information about the situation in their country, their understanding of political
-events, or their proximity to conflict zones.
-
-Start by asking them to locate where they were living in their country
-(the name of their city or region).
-
-Rules:
-- Be sensitive and non-accusatory
-- Do not guide them toward specific answers
-- Avoid legal jargon
-- Write in plain simple language
-- Do not ask about gaps or inconsistencies
-- Be aware of difficult political and social contexts
-- Return ONLY a valid JSON array, no explanation, no markdown:
-[
-  { "id": 1, "question": "..." },
-  { "id": 2, "question": "..." }
-]`
+const SYSTEM_PROMPT = `You are a compassionate legal intake assistant helping an asylum seeker tell their story. Based on their answers so far, generate 5-7 follow-up questions that help them provide more information about the situation in their country, their understanding of political events, or their proximity to conflict zones. Start by asking them to locate where they were living in their country — the name of their city or region. Be sensitive and non-accusatory. Do not guide them toward specific answers. Avoid legal jargon. Write in plain simple language. Do not ask about gaps or inconsistencies. Return ONLY a valid JSON array, no explanation, no markdown: [{"id": 1, "question": "..."}]`
 
 const P0_LABELS = [
   'Country of origin (fled from)',
@@ -115,7 +96,10 @@ async function fetchAIQuestions(context, langName) {
   if (!res.ok) throw new Error(`API error ${res.status}`)
   const data = await res.json()
   const text = data.content?.[0]?.text || ''
-  return JSON.parse(text)
+  console.log('[Phase2] Claude raw response:', text)
+  // Strip markdown code fences if Claude wraps the JSON
+  const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
+  return JSON.parse(cleaned)
 }
 
 // ─── Step indicator (for AI questions) ────────────────────────────────────────
