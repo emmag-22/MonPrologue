@@ -431,8 +431,15 @@ app.post('/api/cases', async (req, res) => {
     const p0 = answers?.p0 || {}
     // Phase 0 order: 0=Country, 1=Province/duration, 2=Gender, 3=Age, 4=Arrival method, 5=Arrival date
     const country = typeof p0[0] === 'string' ? p0[0] : 'Unknown'
-    const gender = typeof p0[2] === 'string' ? p0[2] : ''
-    const ageGroup = typeof p0[3] === 'string' ? p0[3] : ''
+    const arrivalMethod = typeof p0[4] === 'string' ? p0[4] : ''
+
+    // Country flag lookup
+    const FLAG_MAP = { 'Haiti': '🇭🇹', 'Colombia': '🇨🇴', 'Mexico': '🇲🇽', 'Venezuela': '🇻🇪', 'Nigeria': '🇳🇬', 'Honduras': '🇭🇳', 'Guatemala': '🇬🇹', 'Democratic Republic of Congo': '🇨🇩', 'Congo (DRC)': '🇨🇩', 'Syria': '🇸🇾', 'Afghanistan': '🇦🇫', 'Iran': '🇮🇷', 'Iraq': '🇮🇶', 'Somalia': '🇸🇴', 'Eritrea': '🇪🇷', 'Ethiopia': '🇪🇹', 'Turkey': '🇹🇷', 'Pakistan': '🇵🇰', 'India': '🇮🇳', 'Bangladesh': '🇧🇩', 'Myanmar': '🇲🇲', 'Ukraine': '🇺🇦', 'Russia': '🇷🇺', 'China': '🇨🇳', 'Cuba': '🇨🇺', 'El Salvador': '🇸🇻', 'Nicaragua': '🇳🇮', 'Brazil': '🇧🇷', 'Peru': '🇵🇪', 'Cameroon': '🇨🇲', 'Senegal': '🇸🇳', 'Algeria': '🇩🇿', 'Morocco': '🇲🇦', 'Tunisia': '🇹🇳', 'Lebanon': '🇱🇧', 'Sudan': '🇸🇩', 'South Sudan': '🇸🇸', 'Yemen': '🇾🇪', 'Libya': '🇱🇾', 'Egypt': '🇪🇬', 'Philippines': '🇵🇭', 'Sri Lanka': '🇱🇰' }
+
+    // Determine detail tag from arrival method
+    const detailTag = arrivalMethod === 'land' ? 'STCA — land entry'
+      : arrivalMethod === 'irregular' ? 'Irregular entry'
+      : 'New submission'
 
     const caseId = `${Math.floor(1000 + Math.random() * 9000)}-QC`
     const now = new Date().toISOString()
@@ -443,10 +450,10 @@ app.post('/api/cases', async (req, res) => {
       sessionPin: sessionPin || null,
       clinic,
       country,
-      countryFlag: '',
+      countryFlag: FLAG_MAP[country] || '🏳️',
       legalCategory: 'Section 96 — Refugee',
-      claimStrength: 'Pending',
-      detailTag: 'New submission',
+      claimStrength: 'Moderate',
+      detailTag,
       filedDate: now.split('T')[0],
       hearingDate: null,
       status: 'open',
