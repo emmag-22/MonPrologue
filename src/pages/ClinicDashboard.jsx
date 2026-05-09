@@ -226,7 +226,7 @@ export default function ClinicDashboard() {
           zIndex: 50,
         }}
       >
-        {LEGEND.map(({ color, label }) => (
+        {LEGEND.map(({ color, tKey }) => (
           <div
             key={color}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
@@ -241,7 +241,7 @@ export default function ClinicDashboard() {
               }}
             />
             <span style={{ fontSize: '0.68rem', color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
-              {label}
+              {t(tKey)}
             </span>
           </div>
         ))}
