@@ -28,6 +28,7 @@ function BriefcaseIcon() {
 function DoorAnimation() {
   return (
     <div className={styles.doorOverlay} aria-hidden="true">
+      <div className={styles.doorRays} />
       <div className={styles.doorCenter}>
         <div className={styles.doorGlowWrap}>
           <div className={styles.doorGlow} />
@@ -37,11 +38,11 @@ function DoorAnimation() {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <line x1="0" y1="248" x2="170" y2="248" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
-            <line x1="18" y1="248" x2="18" y2="125" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
-            <line x1="152" y1="248" x2="152" y2="125" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
-            <path d="M18 125 Q18 30 85 30 Q152 30 152 125" fill="none" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
-            <circle cx="132" cy="178" r="6.5" fill="#1a4a2e"/>
+            <line className={styles.floorLine} x1="0" y1="248" x2="170" y2="248" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
+            <line className={styles.leftPost} x1="18" y1="248" x2="18" y2="125" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
+            <path className={styles.archPath} d="M18 125 Q18 30 85 30 Q152 30 152 125" fill="none" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
+            <line className={styles.rightPost} x1="152" y1="125" x2="152" y2="248" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
+            <circle className={styles.knobCircle} cx="132" cy="178" r="6.5" fill="#1a4a2e"/>
           </svg>
         </div>
         <span className={styles.doorAnimText}>Mon Prologue</span>
@@ -63,7 +64,7 @@ export default function Landing() {
     const timer = setTimeout(() => {
       sessionStorage.setItem('mp-intro-played', 'true')
       setAnimDone(true)
-    }, 2500)
+    }, 4000)
     return () => clearTimeout(timer)
   }, [animDone])
 
