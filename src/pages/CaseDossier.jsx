@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { getMockDossierForCase } from '../lib/mockCases'
+import { getMockDossierForCase, getMockAnswersForCase } from '../lib/mockCases'
 import { searchSimilarCases } from '../lib/openjustice'
 import { buildTranscript } from '../lib/assessment'
 import TimelineComponent from '../components/TimelineComponent'
@@ -42,11 +42,15 @@ export default function CaseDossier() {
     return () => { cancelled = true }
   }, [caseObj?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Build transcript for appendix
-  const transcript = useMemo(
-    () => buildTranscript(interviewAnswers || {}, interviewPhase1 || {}, interviewPhase2 || {}),
-    [interviewAnswers, interviewPhase1, interviewPhase2]
-  )
+  // Build transcript for appendix — use mock answers if context is empty
+  const transcript = useMemo(() => {
+    const hasRealAnswers = interviewAnswers && Object.keys(interviewAnswers).length > 0
+    if (hasRealAnswers) {
+      return buildTranscript(interviewAnswers, interviewPhase1 || {}, interviewPhase2 || {})
+    }
+    const mock = getMockAnswersForCase(id)
+    return buildTranscript(mock.p0 || {}, mock.p1 || {}, mock.p2 || {})
+  }, [interviewAnswers, interviewPhase1, interviewPhase2, id])
 
   // Highlight state for click-to-highlight
   const [highlightId, setHighlightId] = useState(null)
