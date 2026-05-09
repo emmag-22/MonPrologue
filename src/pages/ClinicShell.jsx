@@ -1,5 +1,6 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 export default function ClinicShell() {
   const { t, setRole } = useApp()
@@ -34,6 +35,7 @@ export default function ClinicShell() {
         >
           {t('clinic.nav.logo')}
         </span>
+        <LanguageSwitcher containerStyle={{ position: 'relative', top: 'auto', right: 'auto', zIndex: 10 }} />
         <button
           onClick={handleLogout}
           aria-label={t('clinic.nav.logout')}

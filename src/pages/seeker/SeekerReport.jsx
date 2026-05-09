@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
+import { useApp } from '../../context/AppContext'
 
-export default function SeekerWelcome() {
+export default function SeekerReport() {
   const { t } = useApp()
   const navigate = useNavigate()
 
@@ -17,7 +17,6 @@ export default function SeekerWelcome() {
         textAlign: 'center',
       }}
     >
-      {/* Shield / checkmark icon */}
       <div
         style={{
           width: 80,
@@ -30,20 +29,8 @@ export default function SeekerWelcome() {
           marginBottom: '2rem',
         }}
       >
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <path
-            d="M20 4L6 10V18C6 27.6 12.2 36.4 20 38C27.8 36.4 34 27.6 34 18V10L20 4Z"
-            fill="rgba(255,255,255,0.2)"
-            stroke="white"
-            strokeWidth="2"
-          />
-          <path
-            d="M14 20L18 24L26 16"
-            stroke="white"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+        <svg width="38" height="38" viewBox="0 0 38 38" fill="none" aria-hidden="true">
+          <path d="M10 19L17 26L28 13" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
 
@@ -54,32 +41,30 @@ export default function SeekerWelcome() {
           fontWeight: 600,
           color: 'var(--color-text)',
           marginBottom: '1.25rem',
+          lineHeight: 1.3,
         }}
       >
-        {t('seeker.welcome.heading')}
+        {t('seeker.report.heading')}
       </h1>
 
       <p
         style={{
-          fontSize: '1.125rem',
+          fontSize: '1.05rem',
           lineHeight: 1.7,
-          color: 'var(--color-text)',
-          maxWidth: 520,
-          marginBottom: '2.5rem',
+          color: 'var(--color-muted)',
+          maxWidth: 480,
+          marginBottom: '3rem',
         }}
       >
-        {t('seeker.welcome.body')}
+        {t('seeker.report.body')}
       </p>
 
-      {/* TODO: Phase 1 interview questions */}
-
       <button
-        onClick={() => navigate('/seeker/interview/1')}
-        aria-label={t('seeker.welcome.start')}
+        onClick={() => navigate('/seeker/share')}
         style={{
           width: '100%',
           maxWidth: 440,
-          height: 56,
+          minHeight: 56,
           background: 'var(--color-primary)',
           color: '#fff',
           border: 'none',
@@ -90,7 +75,7 @@ export default function SeekerWelcome() {
           marginBottom: '1rem',
         }}
       >
-        {t('seeker.welcome.start')}
+        {t('seeker.report.share')}
       </button>
 
       <button
@@ -104,7 +89,6 @@ export default function SeekerWelcome() {
           padding: '0.5rem',
           minHeight: 52,
         }}
-        aria-label={t('seeker.welcome.back')}
       >
         {t('seeker.welcome.back')}
       </button>

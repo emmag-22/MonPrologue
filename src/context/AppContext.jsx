@@ -1,6 +1,277 @@
 import { createContext, useContext, useState, useCallback } from 'react'
 
 const translations = {
+  // ── Interview navigation ──
+  'interview.prev': { fr: '← Retour', en: '← Back', es: '← Atrás', ht: '← Retounen', ar: '← رجوع' },
+  'interview.next': { fr: 'Suivant →', en: 'Next →', es: 'Siguiente →', ht: 'Swivan →', ar: 'التالي →' },
+  'interview.skip': { fr: 'Passer', en: 'Skip', es: 'Omitir', ht: 'Pase', ar: 'تخطي' },
+  'interview.confirm.question': { fr: 'C\'est exact ?', en: 'Is that right?', es: '¿Es correcto?', ht: 'Eske sa a kòrèk?' },
+  'interview.confirm.yes': { fr: 'Oui, c\'est ça', en: 'Yes, that\'s right', es: 'Sí, correcto', ht: 'Wi, sa a kòrèk' },
+  'interview.confirm.change': { fr: 'Modifier', en: 'Change it', es: 'Cambiarlo', ht: 'Chanje li' },
+  'interview.done.heading': { fr: 'Vos réponses sont prêtes.', en: 'Your answers are ready.', es: 'Sus respuestas están listas.', ht: 'Repons ou yo pare.' },
+  'interview.done.body': { fr: 'Merci de nous avoir partagé votre histoire. Vous pouvez maintenant transmettre votre dossier.', en: 'Thank you for sharing your story. You can now send your file.', es: 'Gracias por compartir su historia. Ahora puede enviar su expediente.', ht: 'Mèsi pou pataje istwa ou. Ou ka voye dosye ou kounye a.' },
+  'interview.done.submit': { fr: 'Continuer', en: 'Continue', es: 'Continuar', ht: 'Kontinye' },
+
+  // ── Q1: Sex ──
+  'q1.prompt': { fr: 'Pour commencer — comment vous identifiez-vous ?', en: 'To start — how do you identify?', es: 'Para comenzar — ¿cómo se identifica?', ht: 'Pou kòmanse — kijan ou idantifye tèt ou?' },
+  'q1.man': { fr: 'Homme', en: 'Man', es: 'Hombre', ht: 'Gason' },
+  'q1.woman': { fr: 'Femme', en: 'Woman', es: 'Mujer', ht: 'Fanm' },
+  'q1.nonbinary': { fr: 'Non-binaire', en: 'Non-binary', es: 'No binario', ht: 'Non-binè' },
+  'q1.notsay': { fr: 'Préfère ne pas répondre', en: 'Prefer not to say', es: 'Prefiero no decirlo', ht: 'Prefere pa di' },
+
+  // ── Q2: Age group ──
+  'q2.prompt': { fr: 'Quel est votre groupe d\'âge ?', en: 'Which age group are you in?', es: '¿En qué grupo de edad está?', ht: 'Ki gwoup laj ou ye?' },
+
+  // ── Q3: Country ──
+  'q3.prompt': { fr: 'De quel pays venez-vous ?', en: 'What country are you from?', es: '¿De qué país viene?', ht: 'Ki peyi ou soti?' },
+  'q3.search': { fr: 'Chercher un pays…', en: 'Search for a country…', es: 'Buscar un país…', ht: 'Chèche yon peyi…' },
+
+  // ── Q4: Persecution ground ──
+  'q4.prompt': { fr: 'Pourquoi craignez-vous de retourner dans votre pays ?', en: 'Why are you afraid to return to your country?', es: '¿Por qué teme regresar a su país?', ht: 'Poukisa ou pè retounen nan peyi ou?' },
+  'q4.race': { fr: 'Race ou ethnie', en: 'Race or ethnicity', es: 'Raza o etnia', ht: 'Ras oswa etni' },
+  'q4.religion': { fr: 'Religion', en: 'Religion', es: 'Religión', ht: 'Relijyon' },
+  'q4.nationality': { fr: 'Nationalité', en: 'Nationality', es: 'Nacionalidad', ht: 'Nasyonalite' },
+  'q4.political': { fr: 'Opinion politique', en: 'Political opinion', es: 'Opinión política', ht: 'Opinyon politik' },
+  'q4.psg': { fr: 'Appartenance à un groupe social', en: 'Membership in a social group', es: 'Pertenencia a un grupo social', ht: 'Manm nan yon gwoup sosyal' },
+
+  // ── Q5: Narrative ──
+  'q5.prompt': { fr: 'Racontez-nous ce qui s\'est passé. Prenez votre temps.', en: 'Tell us what happened. Take your time.', es: 'Cuéntenos qué pasó. Tómese su tiempo.', ht: 'Rakonte nou sa ki te pase. Pran tan ou.' },
+  'q5.placeholder': { fr: 'Vous pouvez écrire ici, ou utiliser le microphone pour parler…', en: 'You can write here, or use the microphone to speak…', es: 'Puede escribir aquí, o usar el micrófono para hablar…', ht: 'Ou ka ekri isit la, oswa itilize mikwofòn pou pale…' },
+  'q5.mic': { fr: 'Appuyer pour parler', en: 'Tap to speak', es: 'Toque para hablar', ht: 'Touche pou pale', ar: 'اضغط للتحدث' },
+
+  // ── Q6: Dates ──
+  'q6.prompt': { fr: 'Quelques dates importantes — faites de votre mieux.', en: 'A few important dates — do your best.', es: 'Algunas fechas importantes — haga lo que pueda.', ht: 'Kèk dat enpòtan — fè sa ou kapab.' },
+  'q6.incidents': { fr: 'Quand les incidents ont-ils eu lieu ?', en: 'When did the incidents happen?', es: '¿Cuándo ocurrieron los incidentes?', ht: 'Ki lè ensidan yo te pase?' },
+  'q6.left': { fr: 'Quand avez-vous quitté votre pays ?', en: 'When did you leave your country?', es: '¿Cuándo salió de su país?', ht: 'Ki lè ou te kite peyi ou?' },
+  'q6.arrived': { fr: 'Quand êtes-vous arrivé(e) au Canada ?', en: 'When did you arrive in Canada?', es: '¿Cuándo llegó a Canadá?', ht: 'Ki lè ou te rive Kanada?' },
+
+  // ── Q7: State protection ──
+  'q7.prompt': { fr: 'Avez-vous demandé de l\'aide aux autorités de votre pays ?', en: 'Did you ask for help from authorities in your country?', es: '¿Pidió ayuda a las autoridades de su país?', ht: 'Èske ou te mande otorite nan peyi ou pou èd?' },
+  'q7.yes': { fr: 'Oui', en: 'Yes', es: 'Sí', ht: 'Wi' },
+  'q7.no': { fr: 'Non', en: 'No', es: 'No', ht: 'Non' },
+  'q7.tried': { fr: 'J\'ai essayé mais ils n\'ont pas aidé', en: 'I tried but they didn\'t help', es: 'Lo intenté pero no me ayudaron', ht: 'Mwen te eseye men yo pa t ede' },
+  'q7.detail': { fr: 'Pouvez-vous expliquer pourquoi vous n\'avez pas pu obtenir d\'aide ?', en: 'Can you explain why you couldn\'t get help?', es: '¿Puede explicar por qué no pudo obtener ayuda?', ht: 'Èske ou ka eksplike poukisa ou pa t kapab jwenn èd?' },
+
+  // ── Q8: IFA ──
+  'q8.prompt': { fr: 'Y a-t-il une région sûre dans votre pays où vous pourriez vivre ?', en: 'Is there a safe region in your country where you could live?', es: '¿Hay una región segura en su país donde podría vivir?', ht: 'Èske gen yon rejyon ki an sekirite nan peyi ou kote ou ta ka viv?' },
+  'q8.yes': { fr: 'Oui', en: 'Yes', es: 'Sí', ht: 'Wi' },
+  'q8.no': { fr: 'Non', en: 'No', es: 'No', ht: 'Non' },
+  'q8.unknown': { fr: 'Je ne sais pas', en: 'I don\'t know', es: 'No lo sé', ht: 'Mwen pa konnen' },
+  'q8.detail': { fr: 'Pouvez-vous expliquer pourquoi vous ne pouvez pas déménager ?', en: 'Can you explain why you can\'t relocate?', es: '¿Puede explicar por qué no puede reubicarse?', ht: 'Èske ou ka eksplike poukisa ou pa ka deplase?' },
+
+  // ── Q9: Province + duration ──
+  'q9.prompt': { fr: 'Où vivez-vous au Canada et depuis combien de temps ?', en: 'Where in Canada do you live and for how long?', es: '¿Dónde vive en Canadá y desde cuándo?', ht: 'Ki kote ou rete nan Kanada ak depi konbyen tan?' },
+  'q9.province': { fr: 'Province ou territoire', en: 'Province or territory', es: 'Provincia o territorio', ht: 'Pwovens oswa teritwa' },
+  'q9.duration': { fr: 'Depuis combien de temps ? (ex : 6 mois, 2 ans)', en: 'For how long? (e.g. 6 months, 2 years)', es: '¿Desde cuándo? (ej.: 6 meses, 2 años)', ht: 'Depi konbyen tan? (ex: 6 mwa, 2 an)' },
+  // PIN display screen
+  'pin.heading': {
+    fr: 'Votre numéro de dossier',
+    en: 'Your file number',
+    es: 'Su número de expediente',
+    ht: 'Nimewo dosye ou',
+  },
+  'pin.instruction': {
+    fr: 'Notez ce numéro. La clinique utilisera ce code pour retrouver votre dossier.',
+    en: 'Write this down. The clinic will use this number to find your file.',
+    es: 'Anote este número. La clínica usará este código para encontrar su expediente.',
+    ht: 'Ekri sa a. Klinik la ap itilize nimewo sa a pou jwenn dosye ou.',
+  },
+  'pin.cta': {
+    fr: 'Je l\'ai noté',
+    en: 'I\'ve written it down',
+    es: 'Lo he anotado',
+    ht: 'Mwen te ekri li',
+  },
+
+  // ── Phase 2 — 16-question narrative interview ──
+  'p2.text.placeholder': {
+    fr: 'Vous pouvez écrire ici ou utiliser le microphone…',
+    en: 'You can write here or use the microphone…',
+    es: 'Puede escribir aquí o usar el micrófono…',
+    ar: 'يمكنك الكتابة هنا أو استخدام الميكروفون…',
+  },
+  'p2.done.heading': {
+    fr: 'Merci. Votre histoire a été enregistrée.',
+    en: 'Thank you. Your story has been recorded.',
+    es: 'Gracias. Su historia ha sido registrada.',
+    ar: 'شكراً لك. تم تسجيل قصتك.',
+  },
+  'p2.done.body': {
+    fr: 'Vos réponses aideront votre conseiller juridique à préparer votre dossier.',
+    en: 'Your answers will help your legal helper prepare your file.',
+    es: 'Sus respuestas ayudarán a su asesor legal a preparar su expediente.',
+    ar: 'ستساعد إجاباتك مساعدك القانوني على إعداد ملفك.',
+  },
+  'p2.done.submit': {
+    fr: 'Continuer',
+    en: 'Continue',
+    es: 'Continuar',
+    ar: 'متابعة',
+  },
+
+  // Section 1 — Personal background
+  'p2q1.prompt': {
+    fr: 'Où êtes-vous né(e) et où avez-vous grandi ?',
+    en: 'Where were you born, and where did you grow up?',
+    es: '¿Dónde nació y dónde creció?',
+    ar: 'أين وُلدت، وأين نشأت؟',
+  },
+  'p2q2.prompt': {
+    fr: 'Quelle est votre religion, votre appartenance ethnique ou votre affiliation politique, si cela est lié à votre départ ?',
+    en: 'What is your religion, ethnicity, or political affiliation, if relevant to why you left?',
+    es: '¿Cuál es su religión, etnia o afiliación política, si es relevante para por qué se fue?',
+    ar: 'ما هو دينك أو انتماؤك العرقي أو السياسي، إن كان له صلة بسبب مغادرتك؟',
+  },
+  'p2q3.prompt': {
+    fr: 'Comment était votre vie avant que les problèmes commencent ? Décrivez votre travail, votre famille et votre quotidien.',
+    en: 'What was your life like before the problems began? Describe your work, family, and daily life.',
+    es: '¿Cómo era su vida antes de que comenzaran los problemas? Describa su trabajo, familia y vida cotidiana.',
+    ar: 'كيف كانت حياتك قبل أن تبدأ المشاكل؟ صف عملك وعائلتك وحياتك اليومية.',
+  },
+
+  // Section 2 — Sequence of events
+  'p2q4.prompt': {
+    fr: 'Quand les problèmes ont-ils commencé ? Quelle est la toute première chose qui s\'est passée ?',
+    en: 'When did the problems first start? What was the very first thing that happened?',
+    es: '¿Cuándo comenzaron los problemas? ¿Cuál fue lo primero que ocurrió?',
+    ar: 'متى بدأت المشاكل لأول مرة؟ ما أول شيء حدث؟',
+  },
+  'p2q5.prompt': {
+    fr: 'Qui était responsable de ce qui vous est arrivé ? Décrivez leur rôle, non leur nom. (ex. : soldats gouvernementaux, milice locale, police)',
+    en: 'Who was responsible for what happened to you? Describe their role, not their name. (e.g. government soldiers, local militia, police)',
+    es: '¿Quién fue responsable de lo que le ocurrió? Describa su papel, no su nombre. (p. ej. soldados del gobierno, milicias locales, policía)',
+    ar: 'من كان مسؤولاً عما حدث لك؟ صف دوره لا اسمه. (مثلاً: جنود حكوميون، ميليشيا محلية، شرطة)',
+  },
+  'p2q6.prompt': {
+    fr: 'Que s\'est-il passé ensuite ? Racontez-nous les événements principaux dans l\'ordre.',
+    en: 'What happened next? Walk us through the main events in the order they happened.',
+    es: '¿Qué pasó después? Cuéntenos los eventos principales en el orden en que ocurrieron.',
+    ar: 'ماذا حدث بعد ذلك؟ حدثنا عن الأحداث الرئيسية بالترتيب الزمني.',
+  },
+  'p2q7.prompt': {
+    fr: 'D\'autres membres de votre famille ou de votre communauté ont-ils été touchés par la même situation ?',
+    en: 'Was anyone else in your family or community affected by the same situation?',
+    es: '¿Hubo alguien más en su familia o comunidad afectado por la misma situación?',
+    ar: 'هل تأثر أي شخص آخر من عائلتك أو مجتمعك بنفس الوضع؟',
+  },
+  'p2q7.yes': { fr: 'Oui', en: 'Yes', es: 'Sí', ar: 'نعم' },
+  'p2q7.no': { fr: 'Non', en: 'No', es: 'No', ar: 'لا' },
+  'p2q7.detail': {
+    fr: 'Dites-nous ce qui leur est arrivé.',
+    en: 'Tell us what happened to them.',
+    es: 'Cuéntenos qué les ocurrió.',
+    ar: 'أخبرنا عما حدث لهم.',
+  },
+
+  // Section 3 — Attempts to seek protection
+  'p2q8.prompt': {
+    fr: 'Avez-vous contacté la police ou toute autre autorité pour obtenir de l\'aide ?',
+    en: 'Did you go to the police or any authority for help?',
+    es: '¿Fue a la policía o a alguna autoridad en busca de ayuda?',
+    ar: 'هل لجأت إلى الشرطة أو أي سلطة طلباً للمساعدة؟',
+  },
+  'p2q8.yes': { fr: 'Oui', en: 'Yes', es: 'Sí', ar: 'نعم' },
+  'p2q8.no': { fr: 'Non', en: 'No', es: 'No', ar: 'لا' },
+  'p2q8.tried': {
+    fr: 'J\'ai essayé, mais c\'était dangereux',
+    en: 'I tried but it was dangerous',
+    es: 'Lo intenté pero era peligroso',
+    ar: 'حاولت لكن كان ذلك خطيراً',
+  },
+  'p2q8.detail': {
+    fr: 'Expliquez ce qui s\'est passé.',
+    en: 'Tell us what happened.',
+    es: 'Cuéntenos qué ocurrió.',
+    ar: 'أخبرنا عما حدث.',
+  },
+  'p2q9.prompt': {
+    fr: 'Si vous n\'avez pas demandé d\'aide aux autorités — pourquoi ? Était-ce dangereux ou impossible ?',
+    en: 'If you did not seek help from authorities — why not? Was it unsafe or impossible?',
+    es: 'Si no buscó ayuda de las autoridades — ¿por qué no? ¿Era inseguro o imposible?',
+    ar: 'إن لم تلجأ إلى السلطات طلباً للمساعدة — لماذا؟ هل كان ذلك غير آمن أو مستحيل؟',
+  },
+
+  // Section 4 — Decision to leave
+  'p2q10.prompt': {
+    fr: 'Quel a été l\'événement final qui vous a décidé à quitter votre pays ?',
+    en: 'What was the final event that made you decide to leave your country?',
+    es: '¿Cuál fue el evento final que lo hizo decidir dejar su país?',
+    ar: 'ما الحدث الأخير الذي دفعك إلى اتخاذ قرار مغادرة بلدك؟',
+  },
+  'p2q11.prompt': {
+    fr: 'Comment avez-vous quitté le pays ?',
+    en: 'How did you leave?',
+    es: '¿Cómo salió del país?',
+    ar: 'كيف غادرت البلاد؟',
+  },
+  'p2q11.valid': { fr: 'Avec des documents valides', en: 'With valid documents', es: 'Con documentos válidos', ar: 'بوثائق سارية المفعول' },
+  'p2q11.false': { fr: 'Avec de faux documents', en: 'With false documents', es: 'Con documentos falsos', ar: 'بوثائق مزورة' },
+  'p2q11.none': { fr: 'Sans documents', en: 'Without documents', es: 'Sin documentos', ar: 'بدون وثائق' },
+  'p2q11.other': { fr: 'Autre', en: 'Other', es: 'Otro', ar: 'أخرى' },
+  'p2q12.prompt': {
+    fr: 'Avez-vous transité ou séjourné dans un autre pays avant d\'arriver au Canada ?',
+    en: 'Did you pass through or stay in any other country before arriving in Canada?',
+    es: '¿Pasó o se quedó en algún otro país antes de llegar a Canadá?',
+    ar: 'هل مررت بأي بلد آخر أو أقمت فيه قبل وصولك إلى كندا؟',
+  },
+  'p2q12.yes': { fr: 'Oui', en: 'Yes', es: 'Sí', ar: 'نعم' },
+  'p2q12.no': { fr: 'Non', en: 'No', es: 'No', ar: 'لا' },
+  'p2q12.detail': {
+    fr: 'Quel pays, et pourquoi n\'y avez-vous pas demandé la protection ?',
+    en: 'Which country, and why didn\'t you claim protection there?',
+    es: '¿Qué país, y por qué no solicitó protección allí?',
+    ar: 'أي بلد، ولماذا لم تطلب الحماية هناك؟',
+  },
+
+  // Section 5 — Fear of return
+  'p2q13.prompt': {
+    fr: 'Que pensez-vous qu\'il vous arriverait si vous retourniez dans votre pays aujourd\'hui ?',
+    en: 'What do you believe will happen to you if you return to your country today?',
+    es: '¿Qué cree que le pasaría si regresa a su país hoy?',
+    ar: 'ماذا تعتقد أنه سيحدث لك إذا عدت إلى بلدك اليوم؟',
+  },
+  'p2q14.prompt': {
+    fr: 'La situation dans votre pays a-t-elle changé depuis votre départ ?',
+    en: 'Has the situation in your country changed since you left?',
+    es: '¿Ha cambiado la situación en su país desde que se fue?',
+    ar: 'هل تغير الوضع في بلدك منذ مغادرتك؟',
+  },
+  'p2q14.worse': { fr: 'Elle s\'est aggravée', en: 'It has gotten worse', es: 'Ha empeorado', ar: 'لقد ازداد سوءاً' },
+  'p2q14.same': { fr: 'Elle est la même', en: 'It is the same', es: 'Sigue igual', ar: 'لا يزال كما هو' },
+  'p2q14.unknown': { fr: 'Je ne sais pas', en: 'I don\'t know', es: 'No lo sé', ar: 'لا أعرف' },
+
+  // Section 6 — Internal relocation
+  'p2q15.prompt': {
+    fr: 'Existe-t-il une ville ou une région dans votre pays où vous pourriez vivre en sécurité, loin des personnes qui vous ont nui ?',
+    en: 'Is there any city or region in your country where you could live safely away from the people who harmed you?',
+    es: '¿Hay alguna ciudad o región en su país donde pueda vivir con seguridad lejos de quienes le hicieron daño?',
+    ar: 'هل توجد أي مدينة أو منطقة في بلدك يمكنك العيش فيها بأمان بعيداً عن من أضروا بك؟',
+  },
+  'p2q15.yes': { fr: 'Oui', en: 'Yes', es: 'Sí', ar: 'نعم' },
+  'p2q15.no': { fr: 'Non', en: 'No', es: 'No', ar: 'لا' },
+  'p2q15.unknown': { fr: 'Je ne sais pas', en: 'I don\'t know', es: 'No lo sé', ar: 'لا أعرف' },
+  'p2q15.detail': {
+    fr: 'Expliquez pourquoi vous ne pouvez pas vous réinstaller en toute sécurité.',
+    en: 'Explain why you cannot relocate safely.',
+    es: 'Explique por qué no puede reubicarse de forma segura.',
+    ar: 'اشرح لماذا لا تستطيع الانتقال إلى مكان آمن.',
+  },
+  'p2q16.prompt': {
+    fr: 'Les personnes qui vous ont nui pourraient-elles vous retrouver n\'importe où dans votre pays ?',
+    en: 'Would the people who harmed you be able to find you anywhere in your country?',
+    es: '¿Podrían encontrarle en cualquier parte de su país las personas que le hicieron daño?',
+    ar: 'هل يستطيع من أضروا بك العثور عليك في أي مكان داخل بلدك؟',
+  },
+  'p2q16.yes': { fr: 'Oui', en: 'Yes', es: 'Sí', ar: 'نعم' },
+  'p2q16.no': { fr: 'Non', en: 'No', es: 'No', ar: 'لا' },
+  'p2q16.unknown': { fr: 'Je ne sais pas', en: 'I don\'t know', es: 'No lo sé', ar: 'لا أعرف' },
+  'p2q16.detail': {
+    fr: 'Expliquez pourquoi.',
+    en: 'Tell us why.',
+    es: 'Explíquenos por qué.',
+    ar: 'أخبرنا لماذا.',
+  },
+
   // Landing — language bar
   'lang.fr': { fr: 'Français', en: 'Français', es: 'Français', ht: 'Français' },
   'lang.en': { fr: 'English', en: 'English', es: 'English', ht: 'English' },
@@ -48,6 +319,82 @@ const translations = {
     en: 'Access the dashboard',
     es: 'Acceder al panel',
     ht: 'Aksede tablo bò',
+  },
+
+  // ── Phase 3 — AI adaptive interview ──
+  'p3.loading.heading': {
+    fr: 'Nous préparons vos questions…',
+    en: 'We are preparing your questions…',
+    es: 'Estamos preparando sus preguntas…',
+    ar: 'نحن نُعدّ أسئلتك…',
+  },
+  'p3.loading.body': {
+    fr: 'Cela prend quelques secondes.',
+    en: 'This takes a few seconds.',
+    es: 'Esto tarda unos segundos.',
+    ar: 'يستغرق هذا بضع ثوانٍ.',
+  },
+  'p3.error.heading': {
+    fr: 'Nous n\'avons pas pu générer vos questions.',
+    en: 'We couldn\'t generate your questions.',
+    es: 'No pudimos generar sus preguntas.',
+    ar: 'لم نتمكن من إنشاء أسئلتك.',
+  },
+  'p3.error.retry': {
+    fr: 'Réessayer',
+    en: 'Try again',
+    es: 'Intentar de nuevo',
+    ar: 'حاول مرة أخرى',
+  },
+  'p3.label': {
+    fr: 'Question générée à partir de votre histoire',
+    en: 'Question generated based on your story',
+    es: 'Pregunta generada a partir de su historia',
+    ar: 'سؤال مُولَّد بناءً على قصتك',
+  },
+  'p3.placeholder': {
+    fr: 'Vous pouvez écrire ici ou utiliser le microphone…',
+    en: 'You can write here or use the microphone…',
+    es: 'Puede escribir aquí o usar el micrófono…',
+    ar: 'يمكنك الكتابة هنا أو استخدام الميكروفون…',
+  },
+  'p3.done.heading': {
+    fr: 'Votre histoire est complète.',
+    en: 'Your story is complete.',
+    es: 'Su historia está completa.',
+    ar: 'قصتك اكتملت.',
+  },
+  'p3.done.body': {
+    fr: 'Nous préparons votre dossier.',
+    en: 'We are preparing your file.',
+    es: 'Estamos preparando su expediente.',
+    ar: 'نحن نُعدّ ملفك.',
+  },
+  'p3.done.submit': {
+    fr: 'Voir mon dossier',
+    en: 'See my file',
+    es: 'Ver mi expediente',
+    ar: 'عرض ملفي',
+  },
+
+  // Seeker report
+  'seeker.report.heading': {
+    fr: 'Votre dossier est prêt.',
+    en: 'Your file is ready.',
+    es: 'Su expediente está listo.',
+    ar: 'ملفك جاهز.',
+  },
+  'seeker.report.body': {
+    fr: 'Merci d\'avoir partagé votre histoire. Vous pouvez maintenant transmettre votre dossier à une clinique juridique.',
+    en: 'Thank you for sharing your story. You can now send your file to a legal clinic.',
+    es: 'Gracias por compartir su historia. Ahora puede enviar su expediente a una clínica jurídica.',
+    ar: 'شكراً لك على مشاركة قصتك. يمكنك الآن إرسال ملفك إلى عيادة قانونية.',
+  },
+  'seeker.report.share': {
+    fr: 'Partager avec une clinique',
+    en: 'Share with a clinic',
+    es: 'Compartir con una clínica',
+    ar: 'مشاركة مع عيادة قانونية',
   },
 
   // Seeker welcome
@@ -192,6 +539,9 @@ export function AppProvider({ children }) {
   const [language, setLanguage] = useState('fr')
   const [role, setRole] = useState(null)
   const [sessionPin, setSessionPin] = useState(null)
+  const [interviewAnswers, setInterviewAnswers] = useState({})
+  const [interviewPhase1, setInterviewPhase1] = useState({})
+  const [interviewPhase2, setInterviewPhase2] = useState({})
 
   const t = useCallback(
     (key) => {
@@ -204,7 +554,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider
-      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, t }}
+      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, interviewAnswers, setInterviewAnswers, interviewPhase1, setInterviewPhase1, interviewPhase2, setInterviewPhase2, t }}
     >
       {children}
     </AppContext.Provider>
