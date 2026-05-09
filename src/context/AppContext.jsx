@@ -2,6 +2,65 @@ import { createContext, useContext, useState, useCallback } from 'react'
 import { mockCases } from '../lib/mockCases'
 
 const translations = {
+  // ── Phase 1 — narrative drafting (12 questions) ──
+  'p1q1.prompt': { fr: 'Où êtes-vous né(e) et où avez-vous grandi ?', en: 'Where were you born, and where did you grow up?', es: '¿Dónde nació y dónde creció?', ar: 'أين وُلدت وأين نشأت؟' },
+  'p1q2.prompt': { fr: 'Quelle est votre religion, appartenance ethnique ou affiliation politique, si cela est lié à votre départ ?', en: 'What is your religion, ethnicity, or political affiliation, if relevant to why you left?', es: '¿Cuál es su religión, etnia o afiliación política relevante para por qué se fue?', ar: 'ما هو دينك أو انتماؤك العرقي أو السياسي إن كان ذا صلة بمغادرتك؟' },
+  'p1q3.prompt': { fr: 'Quand les problèmes ont-ils commencé ? Quelle est la toute première chose qui s\'est passée ?', en: 'When did the problems first start? What was the very first thing that happened?', es: '¿Cuándo comenzaron los problemas? ¿Cuál fue lo primero que ocurrió?', ar: 'متى بدأت المشاكل؟ ما أول شيء حدث؟' },
+  'p1q4.prompt': { fr: 'Comment était votre vie avant que les problèmes commencent ? Décrivez votre travail, votre famille et votre quotidien.', en: 'What was your life like before the problems began? Describe your work, family, and daily life.', es: '¿Cómo era su vida antes de que comenzaran los problemas? Describa su trabajo, familia y vida cotidiana.', ar: 'كيف كانت حياتك قبل أن تبدأ المشاكل؟ صف عملك وعائلتك وحياتك اليومية.' },
+  'p1q5.prompt': { fr: 'Êtes-vous accompagné(e) de personnes qui ont également fui la même situation dans votre pays d\'origine ? Si non, est-ce qu\'ils ont fui dans d\'autres pays ?', en: 'Are you accompanied by people who also fled the same situation from your home country? If not, did they flee to other countries?', es: '¿Está acompañado de personas que también huyeron de la misma situación? Si no, ¿huyeron a otros países?', ar: 'هل أنت مصحوب بأشخاص فروا أيضاً من نفس الوضع؟ وإن لم يكونوا معك، هل فروا إلى بلدان أخرى؟' },
+  'p1q5.oui': { fr: 'Oui', en: 'Yes', es: 'Sí', ar: 'نعم' },
+  'p1q5.non': { fr: 'Non', en: 'No', es: 'No', ar: 'لا' },
+  'p1q5.detail': { fr: 'Dites-nous en plus…', en: 'Tell us more…', es: 'Cuéntenos más…', ar: 'أخبرنا المزيد…' },
+  'p1q6.prompt': { fr: 'Avez-vous contacté la police ou toute autre autorité pour obtenir de l\'aide ?', en: 'Did you go to the police or any authority for help?', es: '¿Fue a la policía o alguna autoridad en busca de ayuda?', ar: 'هل لجأت إلى الشرطة أو أي سلطة طلباً للمساعدة؟' },
+  'p1q6.yes': { fr: 'Oui', en: 'Yes', es: 'Sí', ar: 'نعم' },
+  'p1q6.no': { fr: 'Non', en: 'No', es: 'No', ar: 'لا' },
+  'p1q6.tried': { fr: 'J\'ai essayé, mais c\'était dangereux', en: 'I tried but it was dangerous', es: 'Lo intenté pero era peligroso', ar: 'حاولت لكن كان ذلك خطيراً' },
+  'p1q6.detail': { fr: 'Expliquez ce qui s\'est passé…', en: 'Explain what happened…', es: 'Explique lo que ocurrió…', ar: 'اشرح ما حدث…' },
+  'p1q7.prompt': { fr: 'Quel a été l\'événement final qui vous a décidé(e) à quitter votre pays ?', en: 'What was the final event that made you decide to leave your country?', es: '¿Cuál fue el evento final que lo hizo decidir dejar su país?', ar: 'ما الحدث الأخير الذي دفعك إلى مغادرة بلدك؟' },
+  'p1q8.prompt': { fr: 'Comment avez-vous quitté le pays ?', en: 'How did you leave?', es: '¿Cómo salió del país?', ar: 'كيف غادرت البلاد؟' },
+  'p1q8.valid': { fr: 'Avec des documents valides', en: 'With valid documents', es: 'Con documentos válidos', ar: 'بوثائق سارية المفعول' },
+  'p1q8.false': { fr: 'Avec de faux documents', en: 'With false documents', es: 'Con documentos falsos', ar: 'بوثائق مزورة' },
+  'p1q8.none': { fr: 'Sans documents', en: 'Without documents', es: 'Sin documentos', ar: 'بدون وثائق' },
+  'p1q8.other': { fr: 'Autre', en: 'Other', es: 'Otro', ar: 'أخرى' },
+  'p1q9.prompt': { fr: 'Avez-vous transité ou séjourné dans un autre pays avant d\'arriver au Canada ?', en: 'Did you pass through or stay in any other country before arriving in Canada?', es: '¿Pasó por algún otro país antes de llegar a Canadá?', ar: 'هل مررت بأي بلد آخر قبل وصولك إلى كندا؟' },
+  'p1q9.yes': { fr: 'Oui', en: 'Yes', es: 'Sí', ar: 'نعم' },
+  'p1q9.no': { fr: 'Non', en: 'No', es: 'No', ar: 'لا' },
+  'p1q9.detail': { fr: 'Quel pays, et pourquoi n\'y avez-vous pas demandé la protection ?', en: 'Which country, and why didn\'t you claim protection there?', es: '¿Qué país y por qué no solicitó protección allí?', ar: 'أي بلد، ولماذا لم تطلب الحماية هناك؟' },
+  'p1q10.prompt': { fr: 'Que pensez-vous qu\'il vous arriverait si vous retourniez dans votre pays aujourd\'hui ?', en: 'What do you believe will happen to you if you return to your country today?', es: '¿Qué cree que le pasaría si regresara hoy a su país?', ar: 'ماذا تعتقد أنه سيحدث لك إذا عدت إلى بلدك اليوم؟' },
+  'p1q11.prompt': { fr: 'La situation dans votre pays a-t-elle changé depuis votre départ ?', en: 'Has the situation in your country changed since you left?', es: '¿Ha cambiado la situación en su país desde que se fue?', ar: 'هل تغير الوضع في بلدك منذ مغادرتك؟' },
+  'p1q11.worse': { fr: 'Elle s\'est aggravée', en: 'It has gotten worse', es: 'Ha empeorado', ar: 'لقد ازداد سوءاً' },
+  'p1q11.same': { fr: 'Elle est la même', en: 'It is the same', es: 'Sigue igual', ar: 'لا يزال كما هو' },
+  'p1q11.unknown': { fr: 'Je ne sais pas', en: 'I don\'t know', es: 'No lo sé', ar: 'لا أعرف' },
+  'p1q12.prompt': { fr: 'Est-ce que le danger est situé dans une zone particulière dans votre pays, ou est-il généralisé à son entièreté ?', en: 'Is the danger located in a particular area of your country, or is it widespread throughout?', es: '¿El peligro está en una zona particular de su país o está generalizado?', ar: 'هل الخطر في منطقة معينة في بلدك أم أنه منتشر في كل أرجائه؟' },
+  'p1q12.zone': { fr: 'Zone particulière', en: 'Particular area', es: 'Zona particular', ar: 'منطقة معينة' },
+  'p1q12.generalise': { fr: 'Généralisé', en: 'Widespread', es: 'Generalizado', ar: 'منتشر' },
+  'p1q12.unknown': { fr: 'Je ne sais pas', en: 'I don\'t know', es: 'No lo sé', ar: 'لا أعرف' },
+  'p1q12.detail': { fr: 'Précisez si vous le savez…', en: 'Tell us more if you know…', es: 'Especifique si lo sabe…', ar: 'وضح إن كنت تعرف…' },
+  'p1.placeholder': { fr: 'Vous pouvez écrire ici ou utiliser le microphone…', en: 'You can write here or use the microphone…', es: 'Puede escribir aquí o usar el micrófono…', ar: 'يمكنك الكتابة هنا أو استخدام الميكروفون…' },
+  'p1.mic': { fr: 'Appuyer pour parler', en: 'Tap to speak', es: 'Toque para hablar', ar: 'اضغط للتحدث' },
+  'p1.done.heading': { fr: 'Merci. Votre récit a été enregistré.', en: 'Thank you. Your story has been recorded.', es: 'Gracias. Su historia ha sido registrada.', ar: 'شكراً لك. تم تسجيل قصتك.' },
+  'p1.done.body': { fr: 'Nous allons maintenant vous poser quelques questions personnalisées.', en: 'We will now ask you some personalized questions.', es: 'Ahora le haremos algunas preguntas personalizadas.', ar: 'سنطرح عليك الآن بعض الأسئلة الشخصية.' },
+  'p1.done.submit': { fr: 'Continuer', en: 'Continue', es: 'Continuar', ar: 'متابعة' },
+
+  // ── Phase 2 — AI personalized questions ──
+  'p2ai.loading.heading': { fr: 'Nous préparons vos questions…', en: 'We are preparing your questions…', es: 'Estamos preparando sus preguntas…', ar: 'نحن نُعدّ أسئلتك…' },
+  'p2ai.loading.body': { fr: 'Cela prend quelques secondes.', en: 'This takes a few seconds.', es: 'Esto tarda unos segundos.', ar: 'يستغرق هذا بضع ثوانٍ.' },
+  'p2ai.error.heading': { fr: 'Nous n\'avons pas pu générer vos questions.', en: 'We couldn\'t generate your questions.', es: 'No pudimos generar sus preguntas.', ar: 'لم نتمكن من إنشاء أسئلتك.' },
+  'p2ai.error.retry': { fr: 'Réessayer', en: 'Try again', es: 'Intentar de nuevo', ar: 'حاول مرة أخرى' },
+  'p2ai.label': { fr: 'Question personnalisée', en: 'Personalized question', es: 'Pregunta personalizada', ar: 'سؤال مخصص' },
+  'p2ai.placeholder': { fr: 'Vous pouvez écrire ici ou utiliser le microphone…', en: 'You can write here or use the microphone…', es: 'Puede escribir aquí o usar el micrófono…', ar: 'يمكنك الكتابة هنا أو استخدام الميكروفون…' },
+  'p2ai.mic': { fr: 'Appuyer pour parler', en: 'Tap to speak', es: 'Toque para hablar', ar: 'اضغط للتحدث' },
+  'p2ai.done.heading': { fr: 'Merci pour vos réponses.', en: 'Thank you for your answers.', es: 'Gracias por sus respuestas.', ar: 'شكراً على إجاباتك.' },
+  'p2ai.done.body': { fr: 'Nous passons à la dernière étape.', en: 'We are moving to the last step.', es: 'Pasamos al último paso.', ar: 'ننتقل إلى الخطوة الأخيرة.' },
+  'p2ai.done.submit': { fr: 'Continuer', en: 'Continue', es: 'Continuar', ar: 'متابعة' },
+
+  // ── Phase 3 — resources checklist ──
+  'p3res.title': { fr: 'Des ressources pour vous aider', en: 'Resources to help you', es: 'Recursos para ayudarle', ar: 'موارد لمساعدتك' },
+  'p3res.subtitle': { fr: 'Lesquels de ces services pourraient vous être utiles ?', en: 'Which of these services might be helpful to you?', es: '¿Cuáles de estos servicios podrían ser útiles para usted?', ar: 'أيٌّ من هذه الخدمات قد يكون مفيداً لك؟' },
+  'p3res.footer': { fr: 'Votre clinique pourra vous orienter vers ces ressources.', en: 'Your clinic will be able to direct you to these resources.', es: 'Su clínica podrá orientarle hacia estos recursos.', ar: 'ستتمكن عيادتك من توجيهك إلى هذه الموارد.' },
+  'p3res.link': { fr: 'Voir toutes les ressources disponibles au Québec', en: 'See all available resources in Québec', es: 'Ver todos los recursos disponibles en Québec', ar: 'عرض جميع الموارد المتاحة في كيبيك' },
+  'p3res.done.submit': { fr: 'Terminer', en: 'Finish', es: 'Terminar', ar: 'إنهاء' },
+
   // ── Interview navigation ──
   'interview.prev': { fr: '← Retour', en: '← Back', es: '← Atrás', ht: '← Retounen', ar: '← رجوع' },
   'interview.next': { fr: 'Suivant →', en: 'Next →', es: 'Siguiente →', ht: 'Swivan →', ar: 'التالي →' },
@@ -633,6 +692,9 @@ export function AppProvider({ children }) {
   const [interviewAnswers, setInterviewAnswers] = useState({})
   const [interviewPhase1, setInterviewPhase1] = useState({})
   const [interviewPhase2, setInterviewPhase2] = useState({})
+  const [interviewPhase3, setInterviewPhase3] = useState(null)
+  const [aiInterviewQuestions, setAiInterviewQuestions] = useState([])
+  const [contactInfo, setContactInfo] = useState(null)
   const [clinicAuth, setClinicAuth] = useState(null)
 
   const isAuthenticated = useCallback(() => clinicAuth !== null, [clinicAuth])
@@ -648,7 +710,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider
-      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, selectedClinic, setSelectedClinic, interviewPhase0, setInterviewPhase0, interviewAnswers, setInterviewAnswers, interviewPhase1, setInterviewPhase1, interviewPhase2, setInterviewPhase2, clinicAuth, setClinicAuth, isAuthenticated, cases: mockCases, t }}
+      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, selectedClinic, setSelectedClinic, interviewPhase0, setInterviewPhase0, interviewAnswers, setInterviewAnswers, interviewPhase1, setInterviewPhase1, interviewPhase2, setInterviewPhase2, interviewPhase3, setInterviewPhase3, aiInterviewQuestions, setAiInterviewQuestions, contactInfo, setContactInfo, clinicAuth, setClinicAuth, isAuthenticated, cases: mockCases, t }}
     >
       {children}
     </AppContext.Provider>

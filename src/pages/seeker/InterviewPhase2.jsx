@@ -1,499 +1,231 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import MicButton from '../../components/MicButton'
 
-const TOTAL = 16
-
-// Q9 (step 8) is auto-skipped when Q8 (step 7) was answered "yes"
-function getNextStep(step, answer) {
-  if (step === 7 && answer?.choice === 'yes') return 9
-  return step + 1
+const LANG_BCP47 = {
+  fr: 'fr-FR', en: 'en-CA', es: 'es-ES', ar: 'ar-SA',
+  pt: 'pt-PT', ht: 'ht-HT', so: 'so-SO', ti: 'ti-ET',
+  hi: 'hi-IN', fil: 'fil-PH', uk: 'uk-UA', fa: 'fa-IR',
+  zh: 'zh-CN', ro: 'ro-RO', tr: 'tr-TR', bn: 'bn-BD',
+  ur: 'ur-PK', sw: 'sw-KE', wo: 'wo-SN', ru: 'ru-RU',
 }
 
-function getPrevStep(step, answers) {
-  if (step === 9 && answers[7]?.choice === 'yes') return 7
-  return step - 1
+const LANG_NAMES = {
+  fr: 'French', en: 'English', es: 'Spanish', ar: 'Arabic',
+  pt: 'Portuguese', ht: 'Haitian Creole', so: 'Somali', ti: 'Tigrinya',
+  hi: 'Hindi', fil: 'Filipino', uk: 'Ukrainian', fa: 'Persian',
+  zh: 'Mandarin Chinese', ro: 'Romanian', tr: 'Turkish', bn: 'Bengali',
+  ur: 'Urdu', sw: 'Swahili', wo: 'Wolof', ru: 'Russian',
 }
 
-// ─── Step indicator ────────────────────────────────────────────────────────────
+const SYSTEM_PROMPT = `You are a compassionate legal intake assistant helping an asylum seeker tell their story.
+Based on their answers so far, generate 5-7 follow-up questions that help them provide
+more information about the situation in their country, their understanding of political
+events, or their proximity to conflict zones.
 
-function StepBar({ step, answers, total, onGoTo }) {
+Start by asking them to locate where they were living in their country
+(the name of their city or region).
+
+Rules:
+- Be sensitive and non-accusatory
+- Do not guide them toward specific answers
+- Avoid legal jargon
+- Write in plain simple language
+- Do not ask about gaps or inconsistencies
+- Be aware of difficult political and social contexts
+- Return ONLY a valid JSON array, no explanation, no markdown:
+[
+  { "id": 1, "question": "..." },
+  { "id": 2, "question": "..." }
+]`
+
+const P0_LABELS = [
+  'Country of origin (fled from)',
+  'Province and duration in Canada',
+  'Gender identity',
+  'Age group',
+  'How arrived in Canada',
+  'Date of arrival in Canada',
+]
+
+const P1_LABELS = [
+  'Where born and grew up',
+  'Religion / ethnicity / political affiliation',
+  'When problems first started and initial event',
+  'Life before problems began',
+  'Whether accompanied by others who fled',
+  'Contact with police or authorities for help',
+  'Final event that triggered decision to leave',
+  'How they left the country',
+  'Transit through other countries before Canada',
+  'Fear of what would happen upon return',
+  'Whether situation in country has changed since departure',
+  'Whether danger is localized or widespread',
+]
+
+function serializeAnswers(interviewPhase0, interviewPhase1) {
+  let text = 'PRELIMINARY ANSWERS (Phase 0):\n'
+  for (let i = 0; i < 6; i++) {
+    const ans = interviewPhase0?.[i]
+    if (ans == null) continue
+    let val = typeof ans === 'object' ? JSON.stringify(ans) : String(ans)
+    text += `- ${P0_LABELS[i]}: ${val}\n`
+  }
+  text += '\nNARRATIVE ANSWERS (Phase 1):\n'
+  for (let i = 0; i < 12; i++) {
+    const ans = interviewPhase1?.[i]
+    if (ans == null) continue
+    let val
+    if (typeof ans === 'object' && ans !== null) {
+      val = ans.choice
+        ? `${ans.choice}${ans.text ? ' — ' + ans.text : ''}`
+        : JSON.stringify(ans)
+    } else {
+      val = String(ans)
+    }
+    text += `- ${P1_LABELS[i]}: ${val}\n`
+  }
+  return text
+}
+
+async function fetchAIQuestions(context, langName) {
+  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
+  if (!apiKey) throw new Error('API key not configured')
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages: [{
+        role: 'user',
+        content: `Please generate questions in ${langName}.\n\n${context}`,
+      }],
+    }),
+  })
+
+  if (!res.ok) throw new Error(`API error ${res.status}`)
+  const data = await res.json()
+  const text = data.content?.[0]?.text || ''
+  return JSON.parse(text)
+}
+
+// ─── Step indicator (for AI questions) ────────────────────────────────────────
+
+function StepBar({ step, total, answers }) {
   return (
-    <div
-      role="navigation"
-      aria-label="Interview progress"
-      style={{
-        display: 'flex',
-        gap: '0.5rem',
-        justifyContent: 'center',
-        marginBottom: '2rem',
-        flexWrap: 'wrap',
-      }}
-    >
+    <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
       {Array.from({ length: total }, (_, i) => {
         const done = answers[i] !== undefined
         const current = i === step
         return (
-          <button
+          <div
             key={i}
-            onClick={() => onGoTo(i)}
-            aria-label={`Question ${i + 1}${done ? ', completed' : ''}`}
-            aria-current={current ? 'step' : undefined}
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              border: current
-                ? '2.5px solid var(--color-primary)'
-                : done
-                  ? 'none'
-                  : '1.5px solid var(--color-border)',
-              background: done
-                ? 'var(--color-primary)'
-                : current
-                  ? 'var(--color-card)'
-                  : 'transparent',
-              color: done
-                ? '#fff'
-                : current
-                  ? 'var(--color-primary)'
-                  : 'var(--color-muted)',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 150ms ease',
+              width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+              border: current ? '2.5px solid var(--color-primary)' : done ? 'none' : '1.5px solid var(--color-border)',
+              background: done ? 'var(--color-primary)' : current ? 'var(--color-card)' : 'transparent',
+              color: done ? '#fff' : current ? 'var(--color-primary)' : 'var(--color-muted)',
+              fontSize: '0.8rem', fontWeight: 600,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            {done ? (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M3 8L7 12L13 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            ) : (
-              i + 1
-            )}
-          </button>
+            {done
+              ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7L6 11L12 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              : i + 1}
+          </div>
         )
       })}
     </div>
   )
 }
 
-// ─── Choice button ─────────────────────────────────────────────────────────────
+// ─── Loading screen ───────────────────────────────────────────────────────────
 
-function ChoiceBtn({ label, selected, onClick }) {
+function LoadingScreen({ t }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        width: '100%',
-        maxWidth: 440,
-        minHeight: 64,
-        background: selected ? 'var(--color-primary)' : 'var(--color-card)',
-        color: selected ? '#fff' : 'var(--color-text)',
-        border: selected ? '2px solid var(--color-primary)' : '1.5px solid var(--color-border)',
-        borderRadius: 'var(--radius-btn)',
-        fontSize: '1.1rem',
-        fontWeight: 500,
-        cursor: 'pointer',
-        textAlign: 'left',
-        padding: '0 1.5rem',
-        transition: 'all 150ms ease',
-      }}
-    >
-      {label}
-    </button>
+    <div style={{ minHeight: 'calc(100vh - 48px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
+      <div style={{
+        width: 56, height: 56, border: '3px solid var(--color-border)',
+        borderTopColor: 'var(--color-primary)', borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite', marginBottom: '1.5rem',
+      }} />
+      <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.5rem' }}>
+        {t('p2ai.loading.heading')}
+      </p>
+      <p style={{ fontSize: '0.95rem', color: 'var(--color-muted)' }}>
+        {t('p2ai.loading.body')}
+      </p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
   )
 }
 
-// ─── Question prompt ───────────────────────────────────────────────────────────
+// ─── Error screen ─────────────────────────────────────────────────────────────
 
-function Prompt({ children }) {
+function ErrorScreen({ onRetry, t }) {
   return (
-    <h2
-      style={{
-        fontFamily: 'var(--font-display)',
-        fontSize: '1.75rem',
-        fontWeight: 600,
-        color: 'var(--color-text)',
-        lineHeight: 1.35,
-        marginBottom: '2rem',
-        maxWidth: 520,
-        textAlign: 'center',
-      }}
-    >
-      {children}
-    </h2>
-  )
-}
-
-// ─── Textarea style ────────────────────────────────────────────────────────────
-
-const textareaStyle = {
-  width: '100%',
-  padding: '1rem',
-  fontSize: '1rem',
-  lineHeight: 1.7,
-  border: '1.5px solid var(--color-border)',
-  borderRadius: 'var(--radius-card)',
-  background: 'var(--color-bg)',
-  resize: 'vertical',
-  fontFamily: 'var(--font-ui)',
-}
-
-const detailTextareaStyle = {
-  ...textareaStyle,
-  marginTop: '0.5rem',
-}
-
-// ─── TextQ — text question with MicButton ──────────────────────────────────────
-
-function TextQ({ draft, setDraft, promptKey, t, lang }) {
-  return (
-    <>
-      <Prompt>{t(promptKey)}</Prompt>
-      <div
+    <div style={{ minHeight: 'calc(100vh - 48px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
+      <div style={{
+        width: 64, height: 64, borderRadius: '50%', background: 'rgba(192,57,43,0.1)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem',
+      }}>
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <circle cx="14" cy="14" r="12" stroke="#C0392B" strokeWidth="2" />
+          <path d="M14 8v7M14 19v1" stroke="#C0392B" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      </div>
+      <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '1.5rem' }}>
+        {t('p2ai.error.heading')}
+      </p>
+      <button
+        onClick={onRetry}
         style={{
-          width: '100%',
-          maxWidth: 520,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '1.25rem',
+          minHeight: 52, padding: '0 2rem', background: 'var(--color-primary)', color: '#fff',
+          border: 'none', borderRadius: 'var(--radius-btn)', fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
         }}
       >
-        <textarea
-          value={draft || ''}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={t('p2.text.placeholder')}
-          rows={7}
-          style={textareaStyle}
-        />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-          <MicButton onResult={(text) => setDraft((d) => (d ? d + ' ' + text : text))} lang={lang} />
-          <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>{t('q5.mic')}</span>
-        </div>
-      </div>
-    </>
+        {t('p2ai.error.retry')}
+      </button>
+    </div>
   )
 }
 
-// ─── Q7: Family / community affected ──────────────────────────────────────────
-
-function Q7({ draft, setDraft, t }) {
-  const choice = draft?.choice
-  const detail = draft?.detail || ''
-  const setChoice = (c) => setDraft({ choice: c, detail: '' })
-  const setDetail = (d) => setDraft({ ...(draft || {}), detail: d })
-
-  return (
-    <>
-      <Prompt>{t('p2q7.prompt')}</Prompt>
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 440,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-          alignItems: 'center',
-        }}
-      >
-        {[
-          [t('p2q7.yes'), 'yes'],
-          [t('p2q7.no'), 'no'],
-        ].map(([label, val]) => (
-          <ChoiceBtn key={val} label={label} selected={choice === val} onClick={() => setChoice(val)} />
-        ))}
-        {choice === 'yes' && (
-          <textarea
-            value={detail}
-            onChange={(e) => setDetail(e.target.value)}
-            placeholder={t('p2q7.detail')}
-            rows={4}
-            style={detailTextareaStyle}
-          />
-        )}
-      </div>
-    </>
-  )
-}
-
-// ─── Q8: Police / authority ────────────────────────────────────────────────────
-
-function Q8({ draft, setDraft, t }) {
-  const choice = draft?.choice
-  const detail = draft?.detail || ''
-  const setChoice = (c) => setDraft({ choice: c, detail: '' })
-  const setDetail = (d) => setDraft({ ...(draft || {}), detail: d })
-
-  return (
-    <>
-      <Prompt>{t('p2q8.prompt')}</Prompt>
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 440,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-          alignItems: 'center',
-        }}
-      >
-        {[
-          [t('p2q8.yes'), 'yes'],
-          [t('p2q8.no'), 'no'],
-          [t('p2q8.tried'), 'tried'],
-        ].map(([label, val]) => (
-          <ChoiceBtn key={val} label={label} selected={choice === val} onClick={() => setChoice(val)} />
-        ))}
-        {choice && (
-          <textarea
-            value={detail}
-            onChange={(e) => setDetail(e.target.value)}
-            placeholder={t('p2q8.detail')}
-            rows={4}
-            style={detailTextareaStyle}
-          />
-        )}
-      </div>
-    </>
-  )
-}
-
-// ─── Q11: How did you leave ────────────────────────────────────────────────────
-
-function Q11({ draft, onSelect, t }) {
-  return (
-    <>
-      <Prompt>{t('p2q11.prompt')}</Prompt>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-          width: '100%',
-          alignItems: 'center',
-        }}
-      >
-        {[
-          [t('p2q11.valid'), 'valid'],
-          [t('p2q11.false'), 'false'],
-          [t('p2q11.none'), 'none'],
-          [t('p2q11.other'), 'other'],
-        ].map(([label, val]) => (
-          <ChoiceBtn key={val} label={label} selected={draft === val} onClick={() => onSelect(val)} />
-        ))}
-      </div>
-    </>
-  )
-}
-
-// ─── Q12: Other countries ──────────────────────────────────────────────────────
-
-function Q12({ draft, setDraft, t }) {
-  const choice = draft?.choice
-  const detail = draft?.detail || ''
-  const setChoice = (c) => setDraft({ choice: c, detail: '' })
-  const setDetail = (d) => setDraft({ ...(draft || {}), detail: d })
-
-  return (
-    <>
-      <Prompt>{t('p2q12.prompt')}</Prompt>
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 440,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-          alignItems: 'center',
-        }}
-      >
-        {[
-          [t('p2q12.yes'), 'yes'],
-          [t('p2q12.no'), 'no'],
-        ].map(([label, val]) => (
-          <ChoiceBtn key={val} label={label} selected={choice === val} onClick={() => setChoice(val)} />
-        ))}
-        {choice === 'yes' && (
-          <textarea
-            value={detail}
-            onChange={(e) => setDetail(e.target.value)}
-            placeholder={t('p2q12.detail')}
-            rows={4}
-            style={detailTextareaStyle}
-          />
-        )}
-      </div>
-    </>
-  )
-}
-
-// ─── Q14: Situation changed ────────────────────────────────────────────────────
-
-function Q14({ draft, onSelect, t }) {
-  return (
-    <>
-      <Prompt>{t('p2q14.prompt')}</Prompt>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-          width: '100%',
-          alignItems: 'center',
-        }}
-      >
-        {[
-          [t('p2q14.worse'), 'worse'],
-          [t('p2q14.same'), 'same'],
-          [t('p2q14.unknown'), 'unknown'],
-        ].map(([label, val]) => (
-          <ChoiceBtn key={val} label={label} selected={draft === val} onClick={() => onSelect(val)} />
-        ))}
-      </div>
-    </>
-  )
-}
-
-// ─── Q15: Safe region ──────────────────────────────────────────────────────────
-
-function Q15({ draft, setDraft, t }) {
-  const choice = draft?.choice
-  const detail = draft?.detail || ''
-  const setChoice = (c) => setDraft({ choice: c, detail: '' })
-  const setDetail = (d) => setDraft({ ...(draft || {}), detail: d })
-
-  return (
-    <>
-      <Prompt>{t('p2q15.prompt')}</Prompt>
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 440,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-          alignItems: 'center',
-        }}
-      >
-        {[
-          [t('p2q15.yes'), 'yes'],
-          [t('p2q15.no'), 'no'],
-          [t('p2q15.unknown'), 'unknown'],
-        ].map(([label, val]) => (
-          <ChoiceBtn key={val} label={label} selected={choice === val} onClick={() => setChoice(val)} />
-        ))}
-        {(choice === 'no' || choice === 'unknown') && (
-          <textarea
-            value={detail}
-            onChange={(e) => setDetail(e.target.value)}
-            placeholder={t('p2q15.detail')}
-            rows={4}
-            style={detailTextareaStyle}
-          />
-        )}
-      </div>
-    </>
-  )
-}
-
-// ─── Q16: Can they find you ────────────────────────────────────────────────────
-
-function Q16({ draft, setDraft, t }) {
-  const choice = draft?.choice
-  const detail = draft?.detail || ''
-  const setChoice = (c) => setDraft({ choice: c, detail: '' })
-  const setDetail = (d) => setDraft({ ...(draft || {}), detail: d })
-
-  return (
-    <>
-      <Prompt>{t('p2q16.prompt')}</Prompt>
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 440,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-          alignItems: 'center',
-        }}
-      >
-        {[
-          [t('p2q16.yes'), 'yes'],
-          [t('p2q16.no'), 'no'],
-          [t('p2q16.unknown'), 'unknown'],
-        ].map(([label, val]) => (
-          <ChoiceBtn key={val} label={label} selected={choice === val} onClick={() => setChoice(val)} />
-        ))}
-        {choice && (
-          <textarea
-            value={detail}
-            onChange={(e) => setDetail(e.target.value)}
-            placeholder={t('p2q16.detail')}
-            rows={4}
-            style={detailTextareaStyle}
-          />
-        )}
-      </div>
-    </>
-  )
-}
-
-// ─── Done screen ───────────────────────────────────────────────────────────────
+// ─── Done screen ──────────────────────────────────────────────────────────────
 
 function DoneScreen({ onSubmit, t }) {
   return (
     <div style={{ textAlign: 'center', maxWidth: 480, margin: '0 auto' }}>
-      <div
-        style={{
-          width: 80,
-          height: 80,
-          borderRadius: '50%',
-          background: 'var(--color-primary)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 2rem',
-        }}
-      >
+      <div style={{
+        width: 80, height: 80, borderRadius: '50%', background: 'var(--color-primary)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem',
+      }}>
         <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
           <path d="M8 18L15 25L28 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
-      <h2
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '2rem',
-          fontWeight: 600,
-          marginBottom: '1rem',
-          color: 'var(--color-text)',
-        }}
-      >
-        {t('p2.done.heading')}
+      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text)' }}>
+        {t('p2ai.done.heading')}
       </h2>
       <p style={{ fontSize: '1.05rem', color: 'var(--color-muted)', lineHeight: 1.7, marginBottom: '2.5rem' }}>
-        {t('p2.done.body')}
+        {t('p2ai.done.body')}
       </p>
       <button
         onClick={onSubmit}
         style={{
-          width: '100%',
-          minHeight: 56,
-          background: 'var(--color-primary)',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 'var(--radius-btn)',
-          fontSize: '1.1rem',
-          fontWeight: 600,
-          cursor: 'pointer',
+          width: '100%', minHeight: 56, background: 'var(--color-primary)', color: '#fff',
+          border: 'none', borderRadius: 'var(--radius-btn)', fontSize: '1.1rem', fontWeight: 600, cursor: 'pointer',
         }}
       >
-        {t('p2.done.submit')}
+        {t('p2ai.done.submit')}
       </button>
     </div>
   )
@@ -502,191 +234,156 @@ function DoneScreen({ onSubmit, t }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function InterviewPhase2() {
-  const { t, language, setInterviewPhase1 } = useApp()
+  const { t, language, interviewPhase0, interviewPhase1, setInterviewPhase2 } = useApp()
   const navigate = useNavigate()
+  const speechLang = LANG_BCP47[language] || 'fr-FR'
+  const langName = LANG_NAMES[language] || 'French'
 
+  const [status, setStatus] = useState('loading') // loading | error | interview | done
+  const [questions, setQuestions] = useState([])
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState({})
-  const [draft, setDraft] = useState(null)
-  const [done, setDone] = useState(false)
+  const [draft, setDraft] = useState('')
 
-  const langMap = { fr: 'fr-FR', en: 'en-CA', es: 'es-ES', ht: 'fr-HT', ar: 'ar-SA' }
-  const speechLang = langMap[language] || 'fr-FR'
-
-  const commitAndAdvance = (val) => {
-    const saved = { ...answers, [step]: val }
-    setAnswers(saved)
-    setDraft(null)
-    const next = getNextStep(step, val)
-    if (next < TOTAL) {
-      setStep(next)
-    } else {
-      setInterviewPhase1(saved)
-      setDone(true)
+  const load = useCallback(async () => {
+    setStatus('loading')
+    try {
+      const context = serializeAnswers(interviewPhase0, interviewPhase1)
+      const qs = await fetchAIQuestions(context, langName)
+      setQuestions(Array.isArray(qs) ? qs : [])
+      setStatus('interview')
+    } catch {
+      setStatus('error')
     }
-  }
+  }, [interviewPhase0, interviewPhase1, langName])
 
-  // Used by Q11 and Q14 (auto-advance on click, no textarea)
-  const handleChoiceSelect = (val) => {
-    commitAndAdvance(val)
-  }
+  useEffect(() => { load() }, [load])
 
-  // Used by all text and choice+textarea questions via the Next button
-  const handleTextNext = () => {
-    if (!draft) return
-    commitAndAdvance(draft)
+  const handleNext = () => {
+    const saved = { ...answers, [step]: draft }
+    setAnswers(saved)
+    setDraft('')
+    if (step < questions.length - 1) {
+      setStep((s) => s + 1)
+    } else {
+      setInterviewPhase2(saved)
+      setStatus('done')
+    }
   }
 
   const handleSkip = () => {
-    setDraft(null)
-    // undefined answer → no conditional skip (Q9 still shows even if Q8 skipped)
-    const next = getNextStep(step, undefined)
-    setStep(Math.min(next, TOTAL - 1))
-  }
-
-  const handlePrev = () => {
-    const prev = getPrevStep(step, answers)
-    setDraft(answers[prev] ?? null)
-    setStep(prev)
-  }
-
-  const handleGoTo = (i) => {
-    setDraft(answers[i] ?? null)
-    setStep(i)
-  }
-
-  // Q11 (step 10) and Q14 (step 13) auto-advance on click — no Next button
-  const usesNextButton = step !== 10 && step !== 13
-
-  const renderQuestion = () => {
-    switch (step) {
-      case 0:  return <TextQ draft={draft} setDraft={setDraft} promptKey="p2q1.prompt"  t={t} lang={speechLang} />
-      case 1:  return <TextQ draft={draft} setDraft={setDraft} promptKey="p2q2.prompt"  t={t} lang={speechLang} />
-      case 2:  return <TextQ draft={draft} setDraft={setDraft} promptKey="p2q3.prompt"  t={t} lang={speechLang} />
-      case 3:  return <TextQ draft={draft} setDraft={setDraft} promptKey="p2q4.prompt"  t={t} lang={speechLang} />
-      case 4:  return <TextQ draft={draft} setDraft={setDraft} promptKey="p2q5.prompt"  t={t} lang={speechLang} />
-      case 5:  return <TextQ draft={draft} setDraft={setDraft} promptKey="p2q6.prompt"  t={t} lang={speechLang} />
-      case 6:  return <Q7   draft={draft} setDraft={setDraft} t={t} />
-      case 7:  return <Q8   draft={draft} setDraft={setDraft} t={t} />
-      case 8:  return <TextQ draft={draft} setDraft={setDraft} promptKey="p2q9.prompt"  t={t} lang={speechLang} />
-      case 9:  return <TextQ draft={draft} setDraft={setDraft} promptKey="p2q10.prompt" t={t} lang={speechLang} />
-      case 10: return <Q11  draft={draft} onSelect={handleChoiceSelect} t={t} />
-      case 11: return <Q12  draft={draft} setDraft={setDraft} t={t} />
-      case 12: return <TextQ draft={draft} setDraft={setDraft} promptKey="p2q13.prompt" t={t} lang={speechLang} />
-      case 13: return <Q14  draft={draft} onSelect={handleChoiceSelect} t={t} />
-      case 14: return <Q15  draft={draft} setDraft={setDraft} t={t} />
-      case 15: return <Q16  draft={draft} setDraft={setDraft} t={t} />
-      default: return null
+    setDraft('')
+    if (step < questions.length - 1) {
+      setStep((s) => s + 1)
+    } else {
+      setInterviewPhase2(answers)
+      setStatus('done')
     }
   }
 
-  if (done) {
+  const handlePrev = () => {
+    setDraft(answers[step - 1] ?? '')
+    setStep((s) => Math.max(s - 1, 0))
+  }
+
+  if (status === 'loading') return <LoadingScreen t={t} />
+  if (status === 'error') return <ErrorScreen onRetry={load} t={t} />
+
+  if (status === 'done') {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '2rem',
-        }}
-      >
+      <div style={{ minHeight: 'calc(100vh - 48px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <DoneScreen onSubmit={() => navigate('/seeker/interview/3')} t={t} />
       </div>
     )
   }
 
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '1.5rem 1.25rem 6rem',
-        maxWidth: 600,
-        margin: '0 auto',
-      }}
-    >
-      <StepBar step={step} answers={answers} total={TOTAL} onGoTo={handleGoTo} />
+  const currentQ = questions[step]
 
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0',
-        }}
-      >
-        {renderQuestion()}
+  return (
+    <div style={{
+      minHeight: 'calc(100vh - 48px)', display: 'flex', flexDirection: 'column',
+      padding: '1.5rem 1.25rem 6rem', maxWidth: 600, margin: '0 auto',
+    }}>
+      <StepBar step={step} total={questions.length} answers={answers} />
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        {/* Question label */}
+        <p style={{
+          fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase',
+          color: 'var(--color-muted)', marginBottom: '1rem',
+        }}>
+          {t('p2ai.label')}
+        </p>
+
+        {/* Question */}
+        <h2 style={{
+          fontFamily: 'var(--font-display)', fontSize: '1.65rem', fontWeight: 600,
+          color: 'var(--color-text)', lineHeight: 1.35, marginBottom: '1.75rem',
+          maxWidth: 540, textAlign: 'center',
+        }}>
+          {currentQ?.question || ''}
+        </h2>
+
+        {/* Answer */}
+        <div style={{ width: '100%', maxWidth: 520, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder={t('p2ai.placeholder')}
+            rows={7}
+            style={{
+              width: '100%', padding: '1rem', fontSize: '1rem', lineHeight: 1.7,
+              border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-card)',
+              background: 'var(--color-bg)', resize: 'vertical', fontFamily: 'var(--font-ui)',
+              boxSizing: 'border-box',
+            }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+            <MicButton onResult={(txt) => setDraft((d) => d ? d + ' ' + txt : txt)} lang={speechLang} />
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>{t('p2ai.mic')}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Bottom navigation */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: 'var(--color-card)',
-          borderTop: '1px solid var(--color-border)',
-          padding: '1rem 1.25rem',
-          display: 'flex',
-          gap: '0.75rem',
-          justifyContent: 'center',
-        }}
-      >
+      {/* Bottom nav */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'var(--color-card)', borderTop: '1px solid var(--color-border)',
+        padding: '1rem 1.25rem', display: 'flex', gap: '0.75rem', justifyContent: 'center',
+      }}>
         {step > 0 && (
           <button
             onClick={handlePrev}
             style={{
-              minHeight: 52,
-              padding: '0 1.5rem',
-              background: 'transparent',
-              border: '1.5px solid var(--color-border)',
-              borderRadius: 'var(--radius-btn)',
-              fontSize: '1rem',
-              fontWeight: 500,
-              color: 'var(--color-text)',
-              cursor: 'pointer',
+              minHeight: 52, padding: '0 1.5rem', background: 'transparent',
+              border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-btn)',
+              fontSize: '1rem', fontWeight: 500, color: 'var(--color-text)', cursor: 'pointer',
             }}
           >
             {t('interview.prev')}
           </button>
         )}
 
-        {usesNextButton && (
-          <button
-            onClick={handleTextNext}
-            disabled={!draft}
-            style={{
-              flex: 1,
-              maxWidth: 280,
-              minHeight: 52,
-              background: draft ? 'var(--color-primary)' : 'var(--color-border)',
-              color: draft ? '#fff' : 'var(--color-muted)',
-              border: 'none',
-              borderRadius: 'var(--radius-btn)',
-              fontSize: '1rem',
-              fontWeight: 600,
-              cursor: draft ? 'pointer' : 'default',
-            }}
-          >
-            {t('interview.next')}
-          </button>
-        )}
+        <button
+          onClick={handleNext}
+          disabled={!draft.trim()}
+          style={{
+            flex: 1, maxWidth: 280, minHeight: 52,
+            background: draft.trim() ? 'var(--color-primary)' : 'var(--color-border)',
+            color: draft.trim() ? '#fff' : 'var(--color-muted)',
+            border: 'none', borderRadius: 'var(--radius-btn)',
+            fontSize: '1rem', fontWeight: 600,
+            cursor: draft.trim() ? 'pointer' : 'default',
+          }}
+        >
+          {t('interview.next')}
+        </button>
 
         <button
           onClick={handleSkip}
           style={{
-            minHeight: 52,
-            padding: '0 1.5rem',
-            background: 'transparent',
-            border: 'none',
-            fontSize: '0.9rem',
-            color: 'var(--color-muted)',
-            cursor: 'pointer',
+            minHeight: 52, padding: '0 1.5rem', background: 'transparent', border: 'none',
+            fontSize: '0.9rem', color: 'var(--color-muted)', cursor: 'pointer',
           }}
         >
           {t('interview.skip')}

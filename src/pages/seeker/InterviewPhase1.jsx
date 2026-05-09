@@ -3,25 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import MicButton from '../../components/MicButton'
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+const TOTAL = 12
 
-const TOTAL = 9
+const LANG_BCP47 = {
+  fr: 'fr-FR', en: 'en-CA', es: 'es-ES', ar: 'ar-SA',
+  pt: 'pt-PT', ht: 'ht-HT', so: 'so-SO', ti: 'ti-ET',
+  hi: 'hi-IN', fil: 'fil-PH', uk: 'uk-UA', fa: 'fa-IR',
+  zh: 'zh-CN', ro: 'ro-RO', tr: 'tr-TR', bn: 'bn-BD',
+  ur: 'ur-PK', sw: 'sw-KE', wo: 'wo-SN', ru: 'ru-RU',
+}
 
-const COMMON_COUNTRIES = [
-  'Afghanistan', 'Algeria', 'Angola', 'Bangladesh', 'Cameroon', 'China',
-  'Colombia', 'Democratic Republic of Congo', 'El Salvador', 'Eritrea',
-  'Ethiopia', 'Guatemala', 'Haiti', 'Honduras', 'India', 'Iran', 'Iraq',
-  'Jamaica', 'Mexico', 'Myanmar', 'Nigeria', 'Pakistan', 'Philippines',
-  'Somalia', 'Sri Lanka', 'Syria', 'Turkey', 'Ukraine', 'Venezuela',
-  'Zimbabwe',
-]
-
-const PROVINCES = [
-  'Alberta', 'British Columbia', 'Manitoba', 'New Brunswick',
-  'Newfoundland and Labrador', 'Northwest Territories', 'Nova Scotia',
-  'Nunavut', 'Ontario', 'Prince Edward Island', 'Québec',
-  'Saskatchewan', 'Yukon',
-]
+// Steps 7 and 10 auto-advance on button click; all others need Next
+const AUTO_ADVANCE = new Set([7, 10])
 
 // ─── Step indicator ────────────────────────────────────────────────────────────
 
@@ -30,13 +23,7 @@ function StepBar({ step, answers, total, onGoTo }) {
     <div
       role="navigation"
       aria-label="Interview progress"
-      style={{
-        display: 'flex',
-        gap: '0.5rem',
-        justifyContent: 'center',
-        marginBottom: '2rem',
-        flexWrap: 'wrap',
-      }}
+      style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', marginBottom: '1.75rem', flexWrap: 'wrap' }}
     >
       {Array.from({ length: total }, (_, i) => {
         const done = answers[i] !== undefined
@@ -48,40 +35,18 @@ function StepBar({ step, answers, total, onGoTo }) {
             aria-label={`Question ${i + 1}${done ? ', completed' : ''}`}
             aria-current={current ? 'step' : undefined}
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              border: current
-                ? '2.5px solid var(--color-primary)'
-                : done
-                  ? 'none'
-                  : '1.5px solid var(--color-border)',
-              background: done
-                ? 'var(--color-primary)'
-                : current
-                  ? 'var(--color-card)'
-                  : 'transparent',
-              color: done
-                ? '#fff'
-                : current
-                  ? 'var(--color-primary)'
-                  : 'var(--color-muted)',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 150ms ease',
+              width: 36, height: 36, borderRadius: '50%',
+              border: current ? '2.5px solid var(--color-primary)' : done ? 'none' : '1.5px solid var(--color-border)',
+              background: done ? 'var(--color-primary)' : current ? 'var(--color-card)' : 'transparent',
+              color: done ? '#fff' : current ? 'var(--color-primary)' : 'var(--color-muted)',
+              fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 150ms ease', flexShrink: 0,
             }}
           >
-            {done ? (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M3 8L7 12L13 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            ) : (
-              i + 1
-            )}
+            {done
+              ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7L6 11L12 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              : i + 1}
           </button>
         )
       })}
@@ -89,25 +54,31 @@ function StepBar({ step, answers, total, onGoTo }) {
   )
 }
 
-// ─── Choice button ─────────────────────────────────────────────────────────────
+// ─── Shared primitives ────────────────────────────────────────────────────────
+
+function Prompt({ children }) {
+  return (
+    <h2 style={{
+      fontFamily: 'var(--font-display)', fontSize: '1.65rem', fontWeight: 600,
+      color: 'var(--color-text)', lineHeight: 1.35, marginBottom: '1.75rem',
+      maxWidth: 540, textAlign: 'center',
+    }}>
+      {children}
+    </h2>
+  )
+}
 
 function ChoiceBtn({ label, selected, onClick }) {
   return (
     <button
       onClick={onClick}
       style={{
-        width: '100%',
-        maxWidth: 440,
-        minHeight: 64,
+        width: '100%', maxWidth: 460, minHeight: 64,
         background: selected ? 'var(--color-primary)' : 'var(--color-card)',
         color: selected ? '#fff' : 'var(--color-text)',
         border: selected ? '2px solid var(--color-primary)' : '1.5px solid var(--color-border)',
-        borderRadius: 'var(--radius-btn)',
-        fontSize: '1.1rem',
-        fontWeight: 500,
-        cursor: 'pointer',
-        textAlign: 'left',
-        padding: '0 1.5rem',
+        borderRadius: 'var(--radius-btn)', fontSize: '1.05rem', fontWeight: 500,
+        cursor: 'pointer', textAlign: 'left', padding: '0 1.5rem',
         transition: 'all 150ms ease',
       }}
     >
@@ -116,335 +87,192 @@ function ChoiceBtn({ label, selected, onClick }) {
   )
 }
 
-// ─── Question prompts ─────────────────────────────────────────────────────────
-
-function Prompt({ children }) {
+function TextArea({ value, onChange, placeholder, lang, onMicResult, t }) {
   return (
-    <h2
+    <div style={{ width: '100%', maxWidth: 520, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
+      <textarea
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={7}
+        style={{
+          width: '100%', padding: '1rem', fontSize: '1rem', lineHeight: 1.7,
+          border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-card)',
+          background: 'var(--color-bg)', resize: 'vertical', fontFamily: 'var(--font-ui)',
+          boxSizing: 'border-box',
+        }}
+      />
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+        <MicButton onResult={onMicResult} lang={lang} />
+        <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>{t('p1.mic')}</span>
+      </div>
+    </div>
+  )
+}
+
+function DetailArea({ value, onChange, placeholder }) {
+  return (
+    <textarea
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      rows={4}
       style={{
-        fontFamily: 'var(--font-display)',
-        fontSize: '1.75rem',
-        fontWeight: 600,
-        color: 'var(--color-text)',
-        lineHeight: 1.35,
-        marginBottom: '2rem',
-        maxWidth: 520,
-        textAlign: 'center',
+        width: '100%', maxWidth: 460, marginTop: '0.75rem', padding: '1rem',
+        fontSize: '1rem', lineHeight: 1.7,
+        border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-card)',
+        background: 'var(--color-bg)', resize: 'vertical', fontFamily: 'var(--font-ui)',
+        boxSizing: 'border-box',
       }}
-    >
-      {children}
-    </h2>
+    />
   )
 }
 
 // ─── Individual question renderers ────────────────────────────────────────────
 
-function Q1({ draft, setDraft, onSelect, t }) {
-  const opts = [
-    [t('q1.man'), 'man'],
-    [t('q1.woman'), 'woman'],
-    [t('q1.nonbinary'), 'nonbinary'],
-    [t('q1.notsay'), 'notsay'],
-  ]
+// Q1–Q4, Q7, Q10: pure text + mic
+function TextQ({ prompt, draft, setDraft, t, lang }) {
   return (
     <>
-      <Prompt>{t('q1.prompt')}</Prompt>
+      <Prompt>{prompt}</Prompt>
+      <TextArea
+        value={draft}
+        onChange={setDraft}
+        placeholder={t('p1.placeholder')}
+        lang={lang}
+        onMicResult={(txt) => setDraft((d) => (d ? d + ' ' + txt : txt))}
+        t={t}
+      />
+    </>
+  )
+}
+
+// Q5: Oui/Non + conditional textarea if Oui
+function Q5({ draft, setDraft, t }) {
+  const choice = draft?.choice
+  const text = draft?.text || ''
+  const setChoice = (c) => setDraft({ choice: c, text: '' })
+  const setText = (v) => setDraft({ ...(draft || {}), text: v })
+
+  return (
+    <>
+      <Prompt>{t('p1q5.prompt')}</Prompt>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', alignItems: 'center' }}>
-        {opts.map(([label, val]) => (
-          <ChoiceBtn key={val} label={label} selected={draft === val} onClick={() => onSelect(val, label)} />
-        ))}
+        <ChoiceBtn label={t('p1q5.oui')} selected={choice === 'oui'} onClick={() => setChoice('oui')} />
+        <ChoiceBtn label={t('p1q5.non')} selected={choice === 'non'} onClick={() => setChoice('non')} />
+        {choice === 'oui' && (
+          <DetailArea value={text} onChange={setText} placeholder={t('p1q5.detail')} />
+        )}
       </div>
     </>
   )
 }
 
-function Q2({ draft, onSelect, t }) {
-  const opts = ['18–25', '26–35', '36–50', '51+']
-  return (
-    <>
-      <Prompt>{t('q2.prompt')}</Prompt>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', alignItems: 'center' }}>
-        {opts.map((val) => (
-          <ChoiceBtn key={val} label={val} selected={draft === val} onClick={() => onSelect(val, val)} />
-        ))}
-      </div>
-    </>
-  )
-}
-
-function Q3({ draft, setDraft, onSelect, t }) {
-  const [query, setQuery] = useState('')
-  const filtered = query.length > 0
-    ? COMMON_COUNTRIES.filter((c) => c.toLowerCase().includes(query.toLowerCase()))
-    : COMMON_COUNTRIES
-
-  return (
-    <>
-      <Prompt>{t('q3.prompt')}</Prompt>
-      <div style={{ width: '100%', maxWidth: 440 }}>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('q3.search')}
-          style={{
-            width: '100%',
-            minHeight: 52,
-            padding: '0 1rem',
-            fontSize: '1rem',
-            border: '1.5px solid var(--color-border)',
-            borderRadius: 'var(--radius-btn)',
-            background: 'var(--color-bg)',
-            marginBottom: '0.75rem',
-          }}
-        />
-        <div style={{ maxHeight: 280, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {filtered.map((country) => (
-            <ChoiceBtn
-              key={country}
-              label={country}
-              selected={draft === country}
-              onClick={() => onSelect(country, country)}
-            />
-          ))}
-        </div>
-      </div>
-    </>
-  )
-}
-
-function Q4({ draft, onSelect, t }) {
-  const opts = [
-    [t('q4.race'), 'race'],
-    [t('q4.religion'), 'religion'],
-    [t('q4.nationality'), 'nationality'],
-    [t('q4.political'), 'political'],
-    [t('q4.psg'), 'psg'],
-  ]
-  return (
-    <>
-      <Prompt>{t('q4.prompt')}</Prompt>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', alignItems: 'center' }}>
-        {opts.map(([label, val]) => (
-          <ChoiceBtn key={val} label={label} selected={draft === val} onClick={() => onSelect(val, label)} />
-        ))}
-      </div>
-    </>
-  )
-}
-
-function Q5({ draft, setDraft, onNext, t, lang }) {
-  return (
-    <>
-      <Prompt>{t('q5.prompt')}</Prompt>
-      <div style={{ width: '100%', maxWidth: 520, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
-        <textarea
-          value={draft || ''}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={t('q5.placeholder')}
-          rows={7}
-          style={{
-            width: '100%',
-            padding: '1rem',
-            fontSize: '1rem',
-            lineHeight: 1.7,
-            border: '1.5px solid var(--color-border)',
-            borderRadius: 'var(--radius-card)',
-            background: 'var(--color-bg)',
-            resize: 'vertical',
-            fontFamily: 'var(--font-ui)',
-          }}
-        />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-          <MicButton onResult={(text) => setDraft((d) => (d ? d + ' ' + text : text))} lang={lang} />
-          <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>{t('q5.mic')}</span>
-        </div>
-      </div>
-    </>
-  )
-}
-
+// Q6: Yes/No/Tried + textarea explanation
 function Q6({ draft, setDraft, t }) {
-  const val = draft || {}
-  const set = (k, v) => setDraft({ ...val, [k]: v })
-
-  return (
-    <>
-      <Prompt>{t('q6.prompt')}</Prompt>
-      <div style={{ width: '100%', maxWidth: 440, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        {[
-          ['incidents', t('q6.incidents')],
-          ['left', t('q6.left')],
-          ['arrived', t('q6.arrived')],
-        ].map(([key, label]) => (
-          <div key={key}>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-muted)', marginBottom: '0.4rem' }}>
-              {label}
-            </label>
-            <input
-              type="month"
-              value={val[key] || ''}
-              onChange={(e) => set(key, e.target.value)}
-              style={{
-                width: '100%',
-                minHeight: 52,
-                padding: '0 1rem',
-                fontSize: '1rem',
-                border: '1.5px solid var(--color-border)',
-                borderRadius: 'var(--radius-btn)',
-                background: 'var(--color-bg)',
-                fontFamily: 'var(--font-ui)',
-              }}
-            />
-          </div>
-        ))}
-      </div>
-    </>
-  )
-}
-
-function Q7({ draft, setDraft, onSelect, t }) {
   const choice = draft?.choice
-  const detail = draft?.detail || ''
-  const setChoice = (c) => setDraft({ choice: c, detail: '' })
-  const setDetail = (d) => setDraft({ ...(draft || {}), detail: d })
-
-  const opts = [
-    [t('q7.yes'), 'yes'],
-    [t('q7.no'), 'no'],
-    [t('q7.tried'), 'tried'],
-  ]
+  const text = draft?.text || ''
+  const setChoice = (c) => setDraft({ choice: c, text })
+  const setText = (v) => setDraft({ ...(draft || {}), text: v })
 
   return (
     <>
-      <Prompt>{t('q7.prompt')}</Prompt>
-      <div style={{ width: '100%', maxWidth: 440, display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
-        {opts.map(([label, val]) => (
-          <ChoiceBtn key={val} label={label} selected={choice === val} onClick={() => setChoice(val)} />
-        ))}
-        {choice && choice !== 'yes' && (
-          <textarea
-            value={detail}
-            onChange={(e) => setDetail(e.target.value)}
-            placeholder={t('q7.detail')}
-            rows={4}
-            style={{
-              width: '100%',
-              marginTop: '0.5rem',
-              padding: '1rem',
-              fontSize: '1rem',
-              lineHeight: 1.7,
-              border: '1.5px solid var(--color-border)',
-              borderRadius: 'var(--radius-card)',
-              background: 'var(--color-bg)',
-              resize: 'vertical',
-              fontFamily: 'var(--font-ui)',
-            }}
-          />
+      <Prompt>{t('p1q6.prompt')}</Prompt>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', alignItems: 'center' }}>
+        <ChoiceBtn label={t('p1q6.yes')} selected={choice === 'yes'} onClick={() => setChoice('yes')} />
+        <ChoiceBtn label={t('p1q6.no')} selected={choice === 'no'} onClick={() => setChoice('no')} />
+        <ChoiceBtn label={t('p1q6.tried')} selected={choice === 'tried'} onClick={() => setChoice('tried')} />
+        {choice && (
+          <DetailArea value={text} onChange={setText} placeholder={t('p1q6.detail')} />
         )}
       </div>
     </>
   )
 }
 
-function Q8({ draft, setDraft, t }) {
-  const choice = draft?.choice
-  const detail = draft?.detail || ''
-  const setChoice = (c) => setDraft({ choice: c, detail: '' })
-  const setDetail = (d) => setDraft({ ...(draft || {}), detail: d })
-
+// Q8: How did you leave — 4 buttons, auto-advances
+function Q8({ draft, onSelect, t }) {
   const opts = [
-    [t('q8.yes'), 'yes'],
-    [t('q8.no'), 'no'],
-    [t('q8.unknown'), 'unknown'],
+    [t('p1q8.valid'), 'valid'],
+    [t('p1q8.false'), 'false'],
+    [t('p1q8.none'), 'none'],
+    [t('p1q8.other'), 'other'],
   ]
-
   return (
     <>
-      <Prompt>{t('q8.prompt')}</Prompt>
-      <div style={{ width: '100%', maxWidth: 440, display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
+      <Prompt>{t('p1q8.prompt')}</Prompt>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', alignItems: 'center' }}>
         {opts.map(([label, val]) => (
-          <ChoiceBtn key={val} label={label} selected={choice === val} onClick={() => setChoice(val)} />
+          <ChoiceBtn key={val} label={label} selected={draft === val} onClick={() => onSelect(val)} />
         ))}
-        {choice && choice !== 'yes' && (
-          <textarea
-            value={detail}
-            onChange={(e) => setDetail(e.target.value)}
-            placeholder={t('q8.detail')}
-            rows={4}
-            style={{
-              width: '100%',
-              marginTop: '0.5rem',
-              padding: '1rem',
-              fontSize: '1rem',
-              lineHeight: 1.7,
-              border: '1.5px solid var(--color-border)',
-              borderRadius: 'var(--radius-card)',
-              background: 'var(--color-bg)',
-              resize: 'vertical',
-              fontFamily: 'var(--font-ui)',
-            }}
-          />
-        )}
       </div>
     </>
   )
 }
 
+// Q9: Transit country Yes/No + conditional detail text
 function Q9({ draft, setDraft, t }) {
-  const val = draft || {}
-  const set = (k, v) => setDraft({ ...val, [k]: v })
+  const choice = draft?.choice
+  const text = draft?.text || ''
+  const setChoice = (c) => setDraft({ choice: c, text: '' })
+  const setText = (v) => setDraft({ ...(draft || {}), text: v })
 
   return (
     <>
-      <Prompt>{t('q9.prompt')}</Prompt>
-      <div style={{ width: '100%', maxWidth: 440, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-muted)', marginBottom: '0.4rem' }}>
-            {t('q9.province')}
-          </label>
-          <select
-            value={val.province || ''}
-            onChange={(e) => set('province', e.target.value)}
-            style={{
-              width: '100%',
-              minHeight: 52,
-              padding: '0 1rem',
-              fontSize: '1rem',
-              border: '1.5px solid var(--color-border)',
-              borderRadius: 'var(--radius-btn)',
-              background: 'var(--color-bg)',
-              fontFamily: 'var(--font-ui)',
-              appearance: 'auto',
-            }}
-          >
-            <option value="" disabled>{t('q9.province')}</option>
-            {PROVINCES.map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-muted)', marginBottom: '0.4rem' }}>
-            {t('q9.duration')}
-          </label>
-          <input
-            type="text"
-            value={val.duration || ''}
-            onChange={(e) => set('duration', e.target.value)}
-            placeholder={t('q9.duration')}
-            style={{
-              width: '100%',
-              minHeight: 52,
-              padding: '0 1rem',
-              fontSize: '1rem',
-              border: '1.5px solid var(--color-border)',
-              borderRadius: 'var(--radius-btn)',
-              background: 'var(--color-bg)',
-              fontFamily: 'var(--font-ui)',
-            }}
-          />
-        </div>
+      <Prompt>{t('p1q9.prompt')}</Prompt>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', alignItems: 'center' }}>
+        <ChoiceBtn label={t('p1q9.yes')} selected={choice === 'yes'} onClick={() => setChoice('yes')} />
+        <ChoiceBtn label={t('p1q9.no')} selected={choice === 'no'} onClick={() => setChoice('no')} />
+        {choice === 'yes' && (
+          <DetailArea value={text} onChange={setText} placeholder={t('p1q9.detail')} />
+        )}
+      </div>
+    </>
+  )
+}
+
+// Q11: Situation changed — 3 buttons, auto-advances
+function Q11({ draft, onSelect, t }) {
+  const opts = [
+    [t('p1q11.worse'), 'worse'],
+    [t('p1q11.same'), 'same'],
+    [t('p1q11.unknown'), 'unknown'],
+  ]
+  return (
+    <>
+      <Prompt>{t('p1q11.prompt')}</Prompt>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', alignItems: 'center' }}>
+        {opts.map(([label, val]) => (
+          <ChoiceBtn key={val} label={label} selected={draft === val} onClick={() => onSelect(val)} />
+        ))}
+      </div>
+    </>
+  )
+}
+
+// Q12: Danger zone — 3 buttons + detail textarea
+function Q12({ draft, setDraft, t }) {
+  const choice = draft?.choice
+  const text = draft?.text || ''
+  const setChoice = (c) => setDraft({ choice: c, text })
+  const setText = (v) => setDraft({ ...(draft || {}), text: v })
+
+  const opts = [
+    [t('p1q12.zone'), 'zone'],
+    [t('p1q12.generalise'), 'generalise'],
+    [t('p1q12.unknown'), 'unknown'],
+  ]
+
+  return (
+    <>
+      <Prompt>{t('p1q12.prompt')}</Prompt>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', alignItems: 'center' }}>
+        {opts.map(([label, val]) => (
+          <ChoiceBtn key={val} label={label} selected={choice === val} onClick={() => setChoice(val)} />
+        ))}
+        {choice && (
+          <DetailArea value={text} onChange={setText} placeholder={t('p1q12.detail')} />
+        )}
       </div>
     </>
   )
@@ -455,34 +283,28 @@ function Q9({ draft, setDraft, t }) {
 function DoneScreen({ onSubmit, t }) {
   return (
     <div style={{ textAlign: 'center', maxWidth: 480, margin: '0 auto' }}>
-      <div
-        style={{
-          width: 80, height: 80, borderRadius: '50%',
-          background: 'var(--color-primary)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 2rem',
-        }}
-      >
+      <div style={{
+        width: 80, height: 80, borderRadius: '50%', background: 'var(--color-primary)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem',
+      }}>
         <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
           <path d="M8 18L15 25L28 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text)' }}>
-        {t('interview.done.heading')}
+        {t('p1.done.heading')}
       </h2>
       <p style={{ fontSize: '1.05rem', color: 'var(--color-muted)', lineHeight: 1.7, marginBottom: '2.5rem' }}>
-        {t('interview.done.body')}
+        {t('p1.done.body')}
       </p>
       <button
         onClick={onSubmit}
         style={{
-          width: '100%', minHeight: 56,
-          background: 'var(--color-primary)', color: '#fff',
-          border: 'none', borderRadius: 'var(--radius-btn)',
-          fontSize: '1.1rem', fontWeight: 600, cursor: 'pointer',
+          width: '100%', minHeight: 56, background: 'var(--color-primary)', color: '#fff',
+          border: 'none', borderRadius: 'var(--radius-btn)', fontSize: '1.1rem', fontWeight: 600, cursor: 'pointer',
         }}
       >
-        {t('interview.done.submit')}
+        {t('p1.done.submit')}
       </button>
     </div>
   )
@@ -491,17 +313,14 @@ function DoneScreen({ onSubmit, t }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function InterviewPhase1() {
-  const { t, language, setInterviewAnswers } = useApp()
+  const { t, language, setInterviewPhase1 } = useApp()
   const navigate = useNavigate()
+  const lang = LANG_BCP47[language] || 'fr-FR'
 
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState({})
   const [draft, setDraft] = useState(null)
   const [done, setDone] = useState(false)
-
-  // Map language codes to BCP-47 for SpeechRecognition
-  const langMap = { fr: 'fr-FR', en: 'en-CA', es: 'es-ES', ht: 'fr-HT' }
-  const speechLang = langMap[language] || 'fr-FR'
 
   const commitAndAdvance = (val) => {
     const saved = { ...answers, [step]: val }
@@ -510,25 +329,26 @@ export default function InterviewPhase1() {
     if (step < TOTAL - 1) {
       setStep((s) => s + 1)
     } else {
-      setInterviewAnswers(saved)
+      setInterviewPhase1(saved)
       setDone(true)
     }
   }
 
-  // Called by choice-button questions — commits immediately, no confirm step
-  const handleChoiceSelect = (val, _label) => {
-    commitAndAdvance(val)
-  }
+  const handleAutoSelect = (val) => commitAndAdvance(val)
 
-  // Called by the "Next" button for text/date/object questions
-  const handleTextNext = () => {
-    if (!draft) return
-    commitAndAdvance(draft)
+  const handleNext = () => {
+    const val = draft ?? ''
+    commitAndAdvance(val)
   }
 
   const handleSkip = () => {
     setDraft(null)
-    setStep((s) => Math.min(s + 1, TOTAL - 1))
+    if (step < TOTAL - 1) {
+      setStep((s) => s + 1)
+    } else {
+      setInterviewPhase1(answers)
+      setDone(true)
+    }
   }
 
   const handlePrev = () => {
@@ -541,109 +361,79 @@ export default function InterviewPhase1() {
     setStep(i)
   }
 
-  // Which questions use "Next" button rather than auto-confirm on click
-  const usesNextButton = [4, 5, 6, 7, 8].includes(step)
+  const nextEnabled = () => {
+    if (AUTO_ADVANCE.has(step)) return false
+    if ([4, 5, 8, 11].includes(step)) return !!(draft?.choice)
+    return !!(draft && draft.length > 0)
+  }
 
   const renderQuestion = () => {
     switch (step) {
-      case 0: return <Q1 draft={draft} setDraft={setDraft} onSelect={handleChoiceSelect} t={t} />
-      case 1: return <Q2 draft={draft} setDraft={setDraft} onSelect={handleChoiceSelect} t={t} />
-      case 2: return <Q3 draft={draft} setDraft={setDraft} onSelect={handleChoiceSelect} t={t} />
-      case 3: return <Q4 draft={draft} setDraft={setDraft} onSelect={handleChoiceSelect} t={t} />
-      case 4: return <Q5 draft={draft} setDraft={setDraft} t={t} lang={speechLang} />
+      case 0: return <TextQ prompt={t('p1q1.prompt')} draft={draft} setDraft={setDraft} t={t} lang={lang} />
+      case 1: return <TextQ prompt={t('p1q2.prompt')} draft={draft} setDraft={setDraft} t={t} lang={lang} />
+      case 2: return <TextQ prompt={t('p1q3.prompt')} draft={draft} setDraft={setDraft} t={t} lang={lang} />
+      case 3: return <TextQ prompt={t('p1q4.prompt')} draft={draft} setDraft={setDraft} t={t} lang={lang} />
+      case 4: return <Q5 draft={draft} setDraft={setDraft} t={t} />
       case 5: return <Q6 draft={draft} setDraft={setDraft} t={t} />
-      case 6: return <Q7 draft={draft} setDraft={setDraft} onSelect={handleChoiceSelect} t={t} />
-      case 7: return <Q8 draft={draft} setDraft={setDraft} t={t} />
+      case 6: return <TextQ prompt={t('p1q7.prompt')} draft={draft} setDraft={setDraft} t={t} lang={lang} />
+      case 7: return <Q8 draft={draft} onSelect={handleAutoSelect} t={t} />
       case 8: return <Q9 draft={draft} setDraft={setDraft} t={t} />
+      case 9: return <TextQ prompt={t('p1q10.prompt')} draft={draft} setDraft={setDraft} t={t} lang={lang} />
+      case 10: return <Q11 draft={draft} onSelect={handleAutoSelect} t={t} />
+      case 11: return <Q12 draft={draft} setDraft={setDraft} t={t} />
       default: return null
     }
   }
 
   if (done) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div style={{ minHeight: 'calc(100vh - 48px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <DoneScreen onSubmit={() => navigate('/seeker/interview/2')} t={t} />
       </div>
     )
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '1.5rem 1.25rem 6rem',
-        maxWidth: 600,
-        margin: '0 auto',
-      }}
-    >
-      {/* Step indicator */}
+    <div style={{
+      minHeight: 'calc(100vh - 48px)', display: 'flex', flexDirection: 'column',
+      padding: '1.5rem 1.25rem 6rem', maxWidth: 600, margin: '0 auto',
+    }}>
       <StepBar step={step} answers={answers} total={TOTAL} onGoTo={handleGoTo} />
 
-      {/* Question */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0',
-        }}
-      >
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         {renderQuestion()}
       </div>
 
-      {/* Bottom navigation */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: 'var(--color-card)',
-          borderTop: '1px solid var(--color-border)',
-          padding: '1rem 1.25rem',
-          display: 'flex',
-          gap: '0.75rem',
-          justifyContent: 'center',
-        }}
-      >
+      {/* Bottom nav */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'var(--color-card)', borderTop: '1px solid var(--color-border)',
+        padding: '1rem 1.25rem', display: 'flex', gap: '0.75rem', justifyContent: 'center',
+      }}>
         {step > 0 && (
           <button
             onClick={handlePrev}
             style={{
-              minHeight: 52,
-              padding: '0 1.5rem',
-              background: 'transparent',
-              border: '1.5px solid var(--color-border)',
-              borderRadius: 'var(--radius-btn)',
-              fontSize: '1rem',
-              fontWeight: 500,
-              color: 'var(--color-text)',
-              cursor: 'pointer',
+              minHeight: 52, padding: '0 1.5rem', background: 'transparent',
+              border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-btn)',
+              fontSize: '1rem', fontWeight: 500, color: 'var(--color-text)', cursor: 'pointer',
             }}
           >
             {t('interview.prev')}
           </button>
         )}
 
-        {usesNextButton && (
+        {!AUTO_ADVANCE.has(step) && (
           <button
-            onClick={handleTextNext}
-            disabled={!draft}
+            onClick={handleNext}
+            disabled={!nextEnabled()}
             style={{
-              flex: 1,
-              maxWidth: 280,
-              minHeight: 52,
-              background: draft ? 'var(--color-primary)' : 'var(--color-border)',
-              color: draft ? '#fff' : 'var(--color-muted)',
-              border: 'none',
-              borderRadius: 'var(--radius-btn)',
-              fontSize: '1rem',
-              fontWeight: 600,
-              cursor: draft ? 'pointer' : 'default',
+              flex: 1, maxWidth: 280, minHeight: 52,
+              background: nextEnabled() ? 'var(--color-primary)' : 'var(--color-border)',
+              color: nextEnabled() ? '#fff' : 'var(--color-muted)',
+              border: 'none', borderRadius: 'var(--radius-btn)',
+              fontSize: '1rem', fontWeight: 600,
+              cursor: nextEnabled() ? 'pointer' : 'default',
             }}
           >
             {t('interview.next')}
@@ -653,13 +443,8 @@ export default function InterviewPhase1() {
         <button
           onClick={handleSkip}
           style={{
-            minHeight: 52,
-            padding: '0 1.5rem',
-            background: 'transparent',
-            border: 'none',
-            fontSize: '0.9rem',
-            color: 'var(--color-muted)',
-            cursor: 'pointer',
+            minHeight: 52, padding: '0 1.5rem', background: 'transparent', border: 'none',
+            fontSize: '0.9rem', color: 'var(--color-muted)', cursor: 'pointer',
           }}
         >
           {t('interview.skip')}

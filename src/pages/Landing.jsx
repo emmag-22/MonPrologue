@@ -24,14 +24,12 @@ function BriefcaseIcon() {
 }
 
 export default function Landing() {
-  const { setRole, setSessionPin, t } = useApp()
+  const { setRole, t } = useApp()
   const navigate = useNavigate()
 
   const handleSeeker = () => {
-    const pin = String(Math.floor(100000 + Math.random() * 900000))
-    setSessionPin(pin)
     setRole('seeker')
-    navigate('/seeker/pin')
+    navigate('/seeker/clinic-select')
   }
 
   const handleClinic = () => {

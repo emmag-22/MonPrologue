@@ -19,7 +19,7 @@ function currentPhaseFromPath(pathname) {
   return -1
 }
 
-function PhaseNavBar({ t, interviewPhase0, interviewAnswers, interviewPhase1, interviewPhase2 }) {
+function PhaseNavBar({ t, interviewPhase0, interviewPhase1, interviewPhase2, interviewPhase3 }) {
   const navigate = useNavigate()
   const location = useLocation()
   const currentPhase = currentPhaseFromPath(location.pathname)
@@ -30,9 +30,9 @@ function PhaseNavBar({ t, interviewPhase0, interviewAnswers, interviewPhase1, in
 
   const completed = new Set([
     ...(hasData(interviewPhase0) ? [0] : []),
-    ...(hasData(interviewAnswers) ? [1] : []),
-    ...(hasData(interviewPhase1) ? [2] : []),
-    ...(hasData(interviewPhase2) ? [3] : []),
+    ...(hasData(interviewPhase1) ? [1] : []),
+    ...(hasData(interviewPhase2) ? [2] : []),
+    ...(interviewPhase3 !== null ? [3] : []),
   ])
 
   const PHASES = [
@@ -163,11 +163,7 @@ function PhaseNavBar({ t, interviewPhase0, interviewAnswers, interviewPhase1, in
 }
 
 export default function SeekerShell() {
-  const { t, interviewPhase0, interviewAnswers, interviewPhase1, interviewPhase2 } = useApp()
-
-  const handlePause = () => {
-    alert(t('seeker.pause.alert'))
-  }
+  const { t, interviewPhase0, interviewPhase1, interviewPhase2, interviewPhase3 } = useApp()
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-bg)', position: 'relative' }}>
@@ -176,43 +172,12 @@ export default function SeekerShell() {
       <PhaseNavBar
         t={t}
         interviewPhase0={interviewPhase0}
-        interviewAnswers={interviewAnswers}
         interviewPhase1={interviewPhase1}
         interviewPhase2={interviewPhase2}
+        interviewPhase3={interviewPhase3}
       />
 
       <Outlet />
-
-      {/* Pause / come back later button */}
-      <button
-        onClick={handlePause}
-        aria-label={t('seeker.pause')}
-        style={{
-          position: 'fixed',
-          bottom: '1.5rem',
-          right: '1.5rem',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.4rem',
-          padding: '0.75rem 1.25rem',
-          background: 'var(--color-card)',
-          border: '1.5px solid var(--color-border)',
-          borderRadius: 999,
-          fontSize: '0.85rem',
-          fontWeight: 500,
-          color: 'var(--color-text)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-          cursor: 'pointer',
-          minHeight: 52,
-          zIndex: 100,
-        }}
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-          <rect x="3" y="2" width="4" height="12" rx="1" />
-          <rect x="9" y="2" width="4" height="12" rx="1" />
-        </svg>
-        {t('seeker.pause')}
-      </button>
     </div>
   )
 }
