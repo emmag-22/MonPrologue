@@ -109,31 +109,18 @@ export default function InterviewPhase3() {
     try {
       const context = serializeAnswers(interviewAnswers, interviewPhase1)
       const langName = LANG_NAMES[language] || 'French'
-      const userMsg = `Client answers:\n\n${context}\n\nGenerate the follow-up questions in ${langName}.`
 
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const API = import.meta.env.DEV ? 'http://localhost:3001' : ''
+      const res = await fetch(`${API}/api/generate-questions`, {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-allow-browser': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1024,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: 'user', content: userMsg }],
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ context, language: langName }),
       })
 
       if (!res.ok) throw new Error(`API ${res.status}`)
 
       const data = await res.json()
-      const text = data.content?.[0]?.text || ''
-      const match = text.match(/\[[\s\S]*\]/)
-      if (!match) throw new Error('No JSON array in response')
-      const parsed = JSON.parse(match[0])
+      const parsed = data.questions
       if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty questions array')
 
       setQuestions(parsed)
