@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import Logo from '../components/Logo'
 import styles from './Landing.module.css'
 
 function HouseIcon() {
@@ -23,9 +25,47 @@ function BriefcaseIcon() {
   )
 }
 
+function DoorAnimation() {
+  return (
+    <div className={styles.doorOverlay} aria-hidden="true">
+      <div className={styles.doorCenter}>
+        <div className={styles.doorGlowWrap}>
+          <div className={styles.doorGlow} />
+          <svg
+            className={styles.doorSvgAnim}
+            viewBox="0 0 170 260"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <line x1="0" y1="248" x2="170" y2="248" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
+            <line x1="18" y1="248" x2="18" y2="125" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
+            <line x1="152" y1="248" x2="152" y2="125" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
+            <path d="M18 125 Q18 30 85 30 Q152 30 152 125" fill="none" stroke="#1a4a2e" strokeWidth="5" strokeLinecap="round"/>
+            <circle cx="132" cy="178" r="6.5" fill="#1a4a2e"/>
+          </svg>
+        </div>
+        <span className={styles.doorAnimText}>Mon Prologue</span>
+      </div>
+    </div>
+  )
+}
+
 export default function Landing() {
   const { setRole, t } = useApp()
   const navigate = useNavigate()
+
+  const [animDone, setAnimDone] = useState(
+    () => sessionStorage.getItem('mp-intro-played') === 'true'
+  )
+
+  useEffect(() => {
+    if (animDone) return
+    const timer = setTimeout(() => {
+      sessionStorage.setItem('mp-intro-played', 'true')
+      setAnimDone(true)
+    }, 2500)
+    return () => clearTimeout(timer)
+  }, [animDone])
 
   const handleSeeker = () => {
     setRole('seeker')
@@ -39,17 +79,17 @@ export default function Landing() {
 
   return (
     <div className={styles.container}>
+      {!animDone && <DoorAnimation />}
+
       <LanguageSwitcher />
 
-      {/* App identity */}
-      <div className={styles.identity}>
-        <h1 className={styles.appName}>Mon Prologue</h1>
+      <div className={`${styles.identity} ${!animDone ? styles.contentAnimated : ''}`}>
+        <Logo size="lg" />
         <p className={styles.tagline}>{t('landing.tagline')}</p>
         <p className={styles.disclaimer}>{t('landing.disclaimer')}</p>
       </div>
 
-      {/* Role cards */}
-      <div className={styles.cards}>
+      <div className={`${styles.cards} ${!animDone ? styles.contentAnimated : ''}`}>
         <button
           className={styles.card}
           onClick={handleSeeker}

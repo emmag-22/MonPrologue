@@ -1,5 +1,6 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import Logo from '../components/Logo'
 
 export default function ClinicShell() {
   const { clinicAuth, setClinicAuth, setRole } = useApp()
@@ -24,17 +25,7 @@ export default function ClinicShell() {
           borderBottom: '1px solid var(--color-border)',
         }}
       >
-        <span
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontStyle: 'italic',
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            color: 'var(--color-primary)',
-          }}
-        >
-          Mon Prologue
-        </span>
+        <Logo size="sm" />
 
         {clinicAuth && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
