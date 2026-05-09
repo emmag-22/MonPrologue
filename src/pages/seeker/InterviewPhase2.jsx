@@ -19,7 +19,32 @@ const LANG_NAMES = {
   ur: 'Urdu', sw: 'Swahili', wo: 'Wolof', ru: 'Russian',
 }
 
-const SYSTEM_PROMPT = `You are a compassionate legal intake assistant helping an asylum seeker tell their story. Based on their answers so far, generate 5-7 follow-up questions that help them provide more information about the situation in their country, their understanding of political events, or their proximity to conflict zones. Start by asking them to locate where they were living in their country — the name of their city or region. Be sensitive and non-accusatory. Do not guide them toward specific answers. Avoid legal jargon. Write in plain simple language. Do not ask about gaps or inconsistencies. Return ONLY a valid JSON array, no explanation, no markdown: [{"id": 1, "question": "..."}]`
+const SYSTEM_PROMPT = `You are a compassionate intake assistant helping an asylum seeker share context about their home country and situation. Based on their answers so far, generate 5-7 follow-up questions.
+
+Your goal is to help them share:
+- Where exactly they were living (city, town, or region)
+- What they know about the political or social situation in their area
+- Their proximity to conflict zones, protests, or areas of unrest
+- Their understanding of events happening around them
+- The general conditions for people like them in their community
+
+IMPORTANT RULES:
+- The FIRST question must always ask where they were living in their country (city or region name)
+- Be gentle, warm, and sensitive — many people come from traumatic contexts
+- NEVER be accusatory or suggest someone is not telling the truth
+- Do NOT ask about gaps, inconsistencies, or missing details in their story
+- Do NOT guide them toward specific answers or put words in their mouths
+- Use simple, plain language — no legal terms
+- Be mindful that political and social contexts are complex and sensitive
+- Frame questions as open invitations to share, not interrogations
+- Example good tone: "Can you tell us a little about..." or "In your experience..."
+- Example bad tone: "Why didn't you..." or "Can you explain the discrepancy..."
+
+Return ONLY a valid JSON array, no explanation, no markdown:
+[
+  { "id": 1, "question": "..." },
+  { "id": 2, "question": "..." }
+]`
 
 const P0_LABELS = [
   'Country of origin (fled from)',
@@ -71,35 +96,19 @@ function serializeAnswers(interviewPhase0, interviewPhase1) {
 }
 
 async function fetchAIQuestions(context, langName) {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
-  if (!apiKey) throw new Error('API key not configured')
+  const API = import.meta.env.DEV ? 'http://localhost:3001' : ''
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch(`${API}/api/generate-questions`, {
     method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: [{
-        role: 'user',
-        content: `Please generate questions in ${langName}.\n\n${context}`,
-      }],
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ context, language: langName, systemPrompt: SYSTEM_PROMPT }),
   })
 
   if (!res.ok) throw new Error(`API error ${res.status}`)
   const data = await res.json()
-  const text = data.content?.[0]?.text || ''
-  console.log('[Phase2] Claude raw response:', text)
-  // Strip markdown code fences if Claude wraps the JSON
-  const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
-  return JSON.parse(cleaned)
+  // Backend returns { questions: [...] } — normalize to array of { id, question }
+  const qs = data.questions || []
+  return qs.map((q, i) => typeof q === 'string' ? { id: i + 1, question: q } : q)
 }
 
 // ─── Step indicator (for AI questions) ────────────────────────────────────────

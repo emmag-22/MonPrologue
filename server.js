@@ -100,38 +100,30 @@ function extractJSON(text) {
   return null
 }
 
-// ── 1. Generate follow-up questions (Phase 3) ──
+// ── 1. Generate follow-up questions ──
 app.post('/api/generate-questions', async (req, res) => {
   try {
-    const { context, language } = req.body
+    const { context, language, systemPrompt } = req.body
 
-    const system = `You are a Canadian refugee lawyer preparing a client's asylum claim for the Immigration and Refugee Board (IRB). You have reviewed the client's initial intake answers and narrative interview.
-
-Your task: generate 5 to 8 targeted follow-up questions that will strengthen this specific asylum claim.
-
-Focus on:
-- Gaps or missing detail in the timeline of events
-- Specific details about persecutors (role, capacity, reach)
-- Evidence the client may have (documents, photos, witnesses, medical records)
-- Medical or psychological impact of the persecution
-- The legal grounds for asylum (race, religion, nationality, political opinion, membership in a social group)
-- Why internal relocation within the country was not a safe option
-
-Rules:
-- Questions must be directly relevant to this particular client's story — not generic
-- Do not repeat any question already asked in the intake or narrative interviews
-- Be compassionate, clear, and non-judgmental
-- Output ONLY a valid JSON array of question strings in the language specified
-- Example format: ["Question one?", "Question two?", "Question three?"]`
+    // Use custom system prompt if provided (Phase 2 sends its own), otherwise default
+    const system = systemPrompt || `You are a compassionate intake assistant helping an asylum seeker.
+Based on their answers, generate 5-7 follow-up questions in the specified language.
+Output ONLY a valid JSON array of question strings.
+Example: ["Question one?", "Question two?"]`
 
     const text = await callClaude({
       system,
-      userContent: `Client answers:\n\n${context}\n\nGenerate the follow-up questions in ${language}.`,
+      userContent: `Please generate questions in ${language}.\n\n${context}`,
       maxTokens: 1024,
     })
 
+    // Parse — handle both ["string"] and [{ id, question }] formats
     const match = text.match(/\[[\s\S]*\]/)
-    const questions = match ? JSON.parse(match[0]) : []
+    let questions = []
+    if (match) {
+      const parsed = JSON.parse(match[0])
+      questions = parsed.map((q, i) => typeof q === 'string' ? q : (q.question || q))
+    }
     res.json({ questions })
   } catch (err) {
     console.error('generate-questions error:', err.message)
