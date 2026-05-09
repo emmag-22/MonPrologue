@@ -369,6 +369,60 @@ Generate 12-16 questions. Questions must be:
   }
 })
 
+// ── 6. Search similar IRB cases via OpenJustice library ──
+app.post('/api/similar-cases', async (req, res) => {
+  try {
+    const { country, convention_ground, claim_strength } = req.body
+    const query = `IRB RPD refugee claim ${country} ${convention_ground} persecution`
+
+    // Try OpenJustice library search endpoints
+    const endpoints = [
+      '/api/v1/library/search',
+      '/api/v1/documents/search',
+      '/library/search',
+    ]
+
+    for (const endpoint of endpoints) {
+      try {
+        const ojRes = await fetch(`https://staging.openjustice.ai${endpoint}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${OPENJUSTICE_API_KEY}`,
+          },
+          body: JSON.stringify({
+            query,
+            filters: { jurisdiction: 'Canada' },
+            limit: 5,
+          }),
+        })
+        if (ojRes.ok) {
+          const data = await ojRes.json()
+          if (data.results?.length > 0 || data.documents?.length > 0 || data.cases?.length > 0) {
+            const items = data.results || data.documents || data.cases
+            res.json({
+              cases: items.slice(0, 5).map(item => ({
+                title: item.title || item.name || 'Untitled',
+                summary: item.summary || item.excerpt || item.content?.substring(0, 300) || '',
+                outcome: item.outcome || item.decision || 'Unknown',
+                key_factors: item.key_factors || item.factors || [],
+                url: item.url || item.link || null,
+              })),
+            })
+            return
+          }
+        }
+      } catch { /* try next endpoint */ }
+    }
+
+    // No endpoint worked — return empty to trigger frontend fallback
+    res.json({ cases: [] })
+  } catch (err) {
+    console.error('similar-cases error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // SPA fallback — serve index.html for all non-API routes
 app.get('/{*path}', (req, res) => {
   res.sendFile(join(__dirname, 'dist', 'index.html'))

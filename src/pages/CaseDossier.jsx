@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getMockDossierForCase } from '../lib/mockCases'
+import { searchSimilarCases } from '../lib/openjustice'
 
 const STRENGTH_STYLE = {
   'Strong':          { color: '#2eb87e', bg: 'rgba(46,184,126,0.08)', border: 'rgba(46,184,126,0.2)' },
@@ -27,6 +28,25 @@ export default function CaseDossier() {
 
   const caseObj = useMemo(() => cases.find(c => c.id === id), [cases, id])
   const dossier = useMemo(() => getMockDossierForCase(caseObj), [caseObj])
+
+  const [similarCases, setSimilarCases] = useState(null)
+  const [similarLoading, setSimilarLoading] = useState(true)
+
+  useEffect(() => {
+    if (!caseObj) return
+    let cancelled = false
+    setSimilarLoading(true)
+    searchSimilarCases({
+      country: caseObj.country,
+      convention_ground: dossier.conventionGround.primary || '',
+      claim_strength: caseObj.claimStrength || '',
+    }).then(cases => {
+      if (!cancelled) { setSimilarCases(cases); setSimilarLoading(false) }
+    }).catch(() => {
+      if (!cancelled) setSimilarLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [caseObj?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!caseObj) {
     return (
@@ -166,6 +186,45 @@ export default function CaseDossier() {
             ))}
           </Card>
         )}
+
+        {/* Similar Cases */}
+        <Card title="Similar IRB Decisions">
+          {similarLoading ? (
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-muted)', fontStyle: 'italic' }}>Loading similar cases…</p>
+          ) : similarCases?.length > 0 ? (
+            <>
+              {similarCases.map((sc, i) => {
+                const outcomeColor = sc.outcome === 'Accepted' ? '#2eb87e'
+                  : sc.outcome === 'Rejected' ? '#d94f3d' : '#e8a020'
+                const outcomeBg = sc.outcome === 'Accepted' ? 'rgba(46,184,126,0.08)'
+                  : sc.outcome === 'Rejected' ? 'rgba(217,79,61,0.08)' : 'rgba(232,160,32,0.08)'
+                return (
+                  <div key={i} style={{ padding: '0.85rem 1rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-btn)', marginBottom: '0.6rem', border: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                      <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', flex: 1 }}>
+                        {sc.url ? <a href={sc.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{sc.title}</a> : sc.title}
+                      </p>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: 999, color: outcomeColor, background: outcomeBg, border: `1px solid ${outcomeColor}25`, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                        {sc.outcome}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text)', lineHeight: 1.55, opacity: 0.85, marginBottom: '0.5rem' }}>{sc.summary}</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                      {sc.key_factors?.map((f, j) => (
+                        <span key={j} style={{ fontSize: '0.68rem', padding: '0.15rem 0.5rem', borderRadius: 999, background: 'var(--color-card)', border: '1px solid var(--color-border)', color: 'var(--color-muted)' }}>{f}</span>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+              <p style={{ fontSize: '0.7rem', color: 'var(--color-muted)', marginTop: '0.5rem', fontStyle: 'italic' }}>
+                Source: OpenJustice document library.
+              </p>
+            </>
+          ) : (
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-muted)', fontStyle: 'italic' }}>No similar cases found.</p>
+          )}
+        </Card>
 
         {/* Disclaimer */}
         <div style={{ padding: '1rem', borderTop: '1px solid var(--color-border)', marginTop: '0.5rem' }}>
