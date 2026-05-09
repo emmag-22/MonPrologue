@@ -4,32 +4,11 @@ import { useApp } from '../context/AppContext'
 import { getPriority } from '../lib/mockCases'
 
 const PRIORITY_COLOR = {
-  red:    '#d94f3d',
-  orange: '#e8a020',
-  yellow: '#d4b84a',
-  green:  '#2eb87e',
+  red:    '#FF2D2D',
+  orange: '#FF8C00',
+  yellow: '#FFD700',
+  green:  '#00CC44',
 }
-
-const STRENGTH_STYLE = {
-  'Strong':          { color: '#0D5C3A', background: 'rgba(13,92,58,0.08)' },
-  'Moderate-Strong': { color: '#1a9b8a', background: 'rgba(26,155,138,0.1)' },
-  'Moderate':        { color: '#8a6200', background: 'rgba(232,160,32,0.1)' },
-  'Weak':            { color: '#C0392B', background: 'rgba(192,57,43,0.08)' },
-}
-
-const STRENGTH_LABEL = {
-  'Strong':          'STRONG',
-  'Moderate-Strong': 'MOD–STRONG',
-  'Moderate':        'MODERATE',
-  'Weak':            'WEAK',
-}
-
-const RED_FLAG_TAGS = new Set([
-  'Explicit threat',
-  'Imminent bodily harm',
-  'Physical violence',
-  'Minor claimant',
-])
 
 const TABS = [
   { key: 'open',     fr: 'Dossiers ouverts',  en: 'Open cases' },
@@ -37,21 +16,15 @@ const TABS = [
   { key: 'archived', fr: 'Archivés',           en: 'Archived' },
 ]
 
-function formatDate(iso) {
-  const d = new Date(iso)
-  const m = ['jan', 'fév', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc']
-  return `${d.getDate()} ${m[d.getMonth()]} ${d.getFullYear()}`
-}
+const LEGEND = [
+  { color: '#FF2D2D', label: 'Audience imminente / Menace explicite' },
+  { color: '#FF8C00', label: 'Audience dans 30 jours / Dossier ancien' },
+  { color: '#FFD700', label: 'Audience dans 60 jours' },
+  { color: '#00CC44', label: 'Nouveau dossier' },
+]
 
 function CaseCard({ caseObj, onClick }) {
-  const priority  = getPriority(caseObj)
-  const isMedical = caseObj.legalCategory === 'Section 97 — Medical Ineligible'
-  const isRedTag  = RED_FLAG_TAGS.has(caseObj.detailTag)
-  const daysSince = Math.round((Date.now() - new Date(caseObj.filedDate).getTime()) / 86400000)
-
-  const strengthStyle = isMedical
-    ? { color: 'var(--color-muted)', background: 'rgba(122,122,114,0.08)' }
-    : STRENGTH_STYLE[caseObj.claimStrength] ?? STRENGTH_STYLE['Moderate']
+  const priority = getPriority(caseObj)
 
   return (
     <button
@@ -77,86 +50,26 @@ function CaseCard({ caseObj, onClick }) {
       <div
         style={{
           flex: 1,
-          padding: '0.875rem 1rem',
+          padding: '0.75rem 1rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.45rem',
+          gap: '0.3rem',
         }}
       >
-        {/* Row 1: session ID + strength badge */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span
-            style={{
-              fontFamily: 'monospace',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              letterSpacing: '0.04em',
-            }}
-          >
-            {caseObj.sessionId}
-          </span>
-          <span
-            style={{
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              padding: '0.2rem 0.6rem',
-              borderRadius: 999,
-              ...strengthStyle,
-            }}
-          >
-            {STRENGTH_LABEL[caseObj.claimStrength]}
-          </span>
-        </div>
-
-        {/* Row 2: flag + country */}
-        <div style={{ fontSize: '0.9rem', color: 'var(--color-text)', fontWeight: 500 }}>
-          {caseObj.countryFlag}&nbsp;&nbsp;{caseObj.country}
-        </div>
-
-        {/* Row 3: legal category */}
-        <div
+        <span
           style={{
-            fontSize: '0.75rem',
-            color: 'var(--color-muted)',
             fontFamily: 'monospace',
-            letterSpacing: '0.01em',
+            fontSize: '0.82rem',
+            fontWeight: 700,
+            color: 'var(--color-text)',
+            letterSpacing: '0.04em',
           }}
         >
-          {caseObj.legalCategory}
-        </div>
-
-        {/* Row 4: detail tag + days since filing */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span
-            style={{
-              fontSize: '0.7rem',
-              fontWeight: 500,
-              padding: '0.2rem 0.6rem',
-              borderRadius: 999,
-              background: isRedTag
-                ? 'rgba(192,57,43,0.07)'
-                : 'rgba(122,122,114,0.08)',
-              color: isRedTag ? 'var(--color-danger)' : 'var(--color-muted)',
-              border: isRedTag
-                ? '1px solid rgba(192,57,43,0.2)'
-                : '1px solid transparent',
-              boxShadow: isRedTag ? '0 0 6px rgba(192,57,43,0.15)' : 'none',
-            }}
-          >
-            {caseObj.detailTag}
-          </span>
-          <span
-            style={{
-              fontSize: '0.73rem',
-              color: 'var(--color-muted)',
-              fontFamily: 'monospace',
-            }}
-          >
-            {daysSince}j · {formatDate(caseObj.filedDate)}
-          </span>
-        </div>
+          {caseObj.sessionId}
+        </span>
+        <span style={{ fontSize: '0.9rem', color: 'var(--color-text)', fontWeight: 500 }}>
+          {caseObj.countryFlag}&nbsp;&nbsp;{caseObj.country}
+        </span>
       </div>
     </button>
   )
@@ -250,7 +163,7 @@ export default function ClinicDashboard() {
           padding: '1.25rem 1.5rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.65rem',
+          gap: '0.5rem',
         }}
       >
         {visible.length === 0 ? (
@@ -274,6 +187,44 @@ export default function ClinicDashboard() {
             />
           ))
         )}
+      </div>
+
+      {/* Legend */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '1.25rem',
+          left: '1.25rem',
+          background: 'var(--color-card)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 8,
+          padding: '0.6rem 0.85rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.35rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          zIndex: 50,
+        }}
+      >
+        {LEGEND.map(({ color, label }) => (
+          <div
+            key={color}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 2,
+                background: color,
+                flexShrink: 0,
+              }}
+            />
+            <span style={{ fontSize: '0.68rem', color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
+              {label}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   )
