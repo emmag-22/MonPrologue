@@ -218,7 +218,7 @@ export default function CaseDossier() {
                 )
               })}
               <p style={{ fontSize: '0.7rem', color: 'var(--color-muted)', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                Source: OpenJustice document library.
+                Illustrative case patterns based on IRB jurisprudence. Click titles to search CanLII for actual decisions.
               </p>
             </>
           ) : (

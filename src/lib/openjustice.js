@@ -62,41 +62,44 @@ export async function searchSimilarCases(claimProfile) {
 function getMockSimilarCases({ country, convention_ground, claim_strength }) {
   const ground = (convention_ground || 'political opinion').replace(/_/g, ' ')
   const countryName = country || 'Unknown'
-  const year1 = 2024, year2 = 2023, year3 = 2025
+
+  // Link to a real CanLII search for similar IRB decisions
+  const searchQuery = encodeURIComponent(`${countryName} ${ground} refugee`)
+  const searchUrl = `https://www.canlii.org/en/#search/type=decision&ccId=irb&text=${searchQuery}`
 
   return [
     {
-      title: `X (Re), ${year1} CanLII — RPD (${countryName})`,
-      summary: `The claimant, a ${countryName} national, sought refugee protection under s.96 of IRPA on the basis of ${ground}. The panel found the claimant's testimony credible and internally consistent. Country condition evidence corroborated the claimant's account of persecution. The panel concluded that state protection was inadequate and no viable Internal Flight Alternative existed.`,
+      title: `Illustrative RPD decision — ${countryName} (${ground}, accepted)`,
+      summary: `In comparable RPD cases involving ${countryName} nationals claiming persecution on the basis of ${ground}, panels have accepted claims where the claimant provided credible and detailed testimony with a consistent timeline, corroborated by country condition evidence from the National Documentation Package. In successful claims, the panel found state protection inadequate and no viable Internal Flight Alternative.`,
       outcome: 'Accepted',
       key_factors: [
         'Credible and detailed testimony with consistent timeline',
         'Corroborating country condition evidence from NDP',
         'State protection demonstrated to be inadequate',
       ],
-      url: `https://www.canlii.org/en/ca/irb/doc/${year1}/rpd-${year1}-${countryName.toLowerCase().replace(/\s+/g, '')}-001/rpd-${year1}-${countryName.toLowerCase().replace(/\s+/g, '')}-001.html`,
+      url: searchUrl,
     },
     {
-      title: `Y (Re), ${year2} CanLII — RPD (${countryName})`,
-      summary: `The claimant from ${countryName} claimed persecution based on ${ground}. The panel found significant gaps in the claimant's timeline and noted that the claimant had not adequately addressed the Internal Flight Alternative. The panel determined that the claimant could have relocated safely within ${countryName} and rejected the claim.`,
+      title: `Illustrative RPD decision — ${countryName} (${ground}, rejected)`,
+      summary: `In comparable RPD cases where claims from ${countryName} based on ${ground} were rejected, panels identified significant gaps in the claimant's timeline that were not adequately explained. The Internal Flight Alternative was not sufficiently rebutted, and the panel determined that the claimant could have relocated safely within ${countryName}.`,
       outcome: 'Rejected',
       key_factors: [
         'Timeline inconsistencies not adequately explained',
         'Internal Flight Alternative not rebutted',
         'Insufficient evidence of country-wide persecution',
       ],
-      url: `https://www.canlii.org/en/ca/irb/doc/${year2}/rpd-${year2}-${countryName.toLowerCase().replace(/\s+/g, '')}-002/rpd-${year2}-${countryName.toLowerCase().replace(/\s+/g, '')}-002.html`,
+      url: searchUrl,
     },
     {
-      title: `Z (Re), ${year3} CanLII — RAD (${countryName})`,
-      summary: `On appeal to the Refugee Appeal Division, the appellant from ${countryName} successfully argued that the RPD had erred in its assessment of state protection. The RAD found that updated country condition evidence demonstrated a deterioration of conditions relevant to ${ground}. The RPD decision was set aside and the claim was accepted.`,
+      title: `Illustrative RAD decision — ${countryName} (${ground}, overturned)`,
+      summary: `In comparable RAD appeals involving ${countryName} and ${ground}, appellants have successfully argued that the RPD erred in its assessment of state protection. The RAD found that updated country condition evidence demonstrated a deterioration of conditions, and the RPD's failure to consider this evidence constituted a reviewable error. The original decision was set aside.`,
       outcome: 'Accepted on appeal',
       key_factors: [
         'Updated country condition evidence presented on appeal',
         'RPD error in state protection analysis identified',
         'Deteriorating conditions supported forward-looking risk',
       ],
-      url: `https://www.canlii.org/en/ca/irb/doc/${year3}/rad-${year3}-${countryName.toLowerCase().replace(/\s+/g, '')}-003/rad-${year3}-${countryName.toLowerCase().replace(/\s+/g, '')}-003.html`,
+      url: searchUrl,
     },
   ]
 }
