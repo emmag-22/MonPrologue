@@ -1,4 +1,4 @@
-# Refuge
+# Mon Prologue
 ### AI-Powered Asylum Seeker Support Platform
 
 > Built at the **Montréal AI × Law Hackathon 2026**
@@ -17,13 +17,13 @@ A poorly prepared BOC, a missed deadline, or an unaddressed legal argument can r
 
 ---
 
-## What Refuge Does
+## What Mon Prologue Does
 
-Refuge is a bilingual web platform with two distinct sides — one built for asylum seekers, one built for the legal professionals who support them.
+Mon Prologue is a bilingual web platform with two distinct sides — one built for asylum seekers, one built for the legal professionals who support them.
 
-**For the asylum seeker**, Refuge is a calm, private companion that guides them through telling their story at home. No legal jargon. No blank forms. One simple question at a time, with the option to speak rather than type. The experience is designed for people who may have limited digital literacy, limited English or French, and who are carrying real fear. Nothing is shared without their explicit permission.
+**For the asylum seeker**, Mon Prologue is a calm, private companion that guides them through telling their story at home. No legal jargon. No blank forms. One simple question at a time, with the option to speak rather than type. The experience is designed for people who may have limited digital literacy, limited English or French, and who are carrying real fear. Nothing is shared without their explicit permission.
 
-**For the legal clinic**, Refuge transforms hours of unstructured first meetings into a focused, immediately actionable case file. By the time a lawyer opens a new case, they already have a structured summary of the client's situation, a draft BOC narrative, a list of specific gaps to address before the hearing, and an overview of relevant country conditions and how similar cases have been decided at the IRB.
+**For the legal clinic**, Mon Prologue transforms hours of unstructured first meetings into a focused, immediately actionable case file. By the time a lawyer opens a new case, they already have a structured summary of the client's situation, a draft BOC narrative, a list of specific gaps to address before the hearing, and an overview of relevant country conditions and how similar cases have been decided at the IRB.
 
 Same platform. Two completely different experiences. Because the needs are completely different.
 
@@ -31,11 +31,11 @@ Same platform. Two completely different experiences. Because the needs are compl
 
 ## How the AI Works
 
-Refuge uses a multi-layer AI architecture that combines a **custom-built legal reasoning flow** on the OpenJustice platform with the **Claude AI model** and **live intelligence feeds** from international human rights sources.
+Mon Prologue uses a multi-layer AI architecture that combines a **custom-built legal reasoning flow** on the OpenJustice platform with the **Claude AI model** and **live intelligence feeds** from international human rights sources.
 
 ### Layer 1 — Custom Legal Reasoning Flow (OpenJustice)
 
-The core intelligence of Refuge is a structured reasoning flow built inside the **OpenJustice platform** developed by the Conflict Analytics Lab at Queen's University. OpenJustice is a no-code legal AI platform that allows legal professionals to encode their own reasoning, legal tests, and jurisprudence directly into an AI workflow — going far beyond simple prompting.
+The core intelligence of Mon Prologue is a structured reasoning flow built inside the **OpenJustice platform** developed by the Conflict Analytics Lab at Queen's University. OpenJustice is a no-code legal AI platform that allows legal professionals to encode their own reasoning, legal tests, and jurisprudence directly into an AI workflow — going far beyond simple prompting.
 
 Our reasoning flow is composed of five interconnected node types:
 
@@ -74,13 +74,13 @@ This is not statistical pattern-matching. It is the same case law a lawyer would
 
 The IRB uses **National Documentation Packages (NDPs)** — country-specific compilations of human rights reports, news, and government sources — as the standard evidence base for every refugee hearing. NDPs are updated periodically, but conditions on the ground change faster.
 
-Refuge monitors live intelligence feeds to supplement the NDP with current context:
+Mon Prologue monitors live intelligence feeds to supplement the NDP with current context:
 - **Human Rights Watch** country reports and urgent dispatches
 - **Amnesty International** situation updates
 - **UNHCR** country situation reports
 - **US State Department** country reports
 
-When a lawyer opens a case, the platform checks whether there has been a significant development in the past 90 days relevant to this country and this Convention ground. The result is a country conditions signal — displayed as a flagged summary with source links — that the lawyer can use to supplement the NDP with current evidence. This is the background research that currently takes a junior lawyer an hour to pull together. Refuge surfaces it automatically.
+When a lawyer opens a case, the platform checks whether there has been a significant development in the past 90 days relevant to this country and this Convention ground. The result is a country conditions signal — displayed as a flagged summary with source links — that the lawyer can use to supplement the NDP with current evidence. This is the background research that currently takes a junior lawyer an hour to pull together. Mon Prologue surfaces it automatically.
 
 ### Layer 4 — BOC Narrative Generation (Claude API)
 
@@ -94,13 +94,13 @@ The seeker sees a plain-language version of their story — warm, encouraging, a
 
 This is as important as what it does.
 
-The AI in Refuge does not produce a credibility score. It does not decide whether a claimant is telling the truth. It does not compare a person's story to political conditions and flag inconsistencies between them. It does not make or recommend a legal decision.
+The AI in Mon Prologue does not produce a credibility score. It does not decide whether a claimant is telling the truth. It does not compare a person's story to political conditions and flag inconsistencies between them. It does not make or recommend a legal decision.
 
 The coherence analysis is entirely **internal to the claimant's own account** — checking whether their story is consistent with itself, not whether it matches external expectations. A gap in someone's timeline might reflect trauma. It might reflect a translation issue. It might be something that needs to be explained. The lawyer finds out. The AI ensures they know to ask.
 
 Every clinic dossier includes this footer: *"This tool does not assess the truthfulness of the claimant's account. Narrative gaps may reflect trauma, memory fragmentation, or translation issues, and must be explored compassionately by the legal professional."*
 
-This design choice is grounded in research. Studies of AI used in asylum processing have documented bias against claimants from sub-Saharan Africa and South Asia, gender-based disparities, and the danger of automating what are fundamentally human judgments about fear and persecution. Refuge is built to avoid these failure modes. The AI supports the lawyer's preparation. It does not replace the lawyer's judgment.
+This design choice is grounded in research. Studies of AI used in asylum processing have documented bias against claimants from sub-Saharan Africa and South Asia, gender-based disparities, and the danger of automating what are fundamentally human judgments about fear and persecution. Mon Prologue is built to avoid these failure modes. The AI supports the lawyer's preparation. It does not replace the lawyer's judgment.
 
 ---
 
@@ -112,7 +112,7 @@ Asylum seekers are among the most vulnerable people in any legal system. Their s
 - **No persistent raw content.** Free-text narratives entered during the intake flow are processed and converted into a structured dossier. The raw text is never written to a database.
 - **Seeker anonymity until handoff.** Sessions are identified by a 6-digit PIN only — no name, no email, no account — until the seeker explicitly chooses to share their file with a clinic.
 - **Situation-not-person framing.** Every intake question asks about events and circumstances, not identity. Personal identifiers are entered once, at the moment of handoff, and only if the seeker consents.
-- **No AI training on case data.** Nothing entered into Refuge is used to train any model. OpenJustice queries are stateless — the platform sends structured legal inputs, not personal narratives.
+- **No AI training on case data.** Nothing entered into Mon Prologue is used to train any model. OpenJustice queries are stateless — the platform sends structured legal inputs, not personal narratives.
 
 ### Consent
 Three explicit consent steps, each in plain language and in the seeker's chosen language:
@@ -121,10 +121,10 @@ Three explicit consent steps, each in plain language and in the seeker's chosen 
 3. The right to delete the session at any point before handoff
 
 ### Retention
-The Refuge platform holds nothing beyond the session. The structured dossier transfers to the clinic's own case management system at handoff. The clinic manages retention from that point under their professional obligations — typically 7 years under Québec Bar rules. Refuge is a generation tool, not a storage system.
+The Mon Prologue platform holds nothing beyond the session. The structured dossier transfers to the clinic's own case management system at handoff. The clinic manages retention from that point under their professional obligations — typically 7 years under Québec Bar rules. Mon Prologue is a generation tool, not a storage system.
 
 ### Québec Law 25
-Québec's *Loi 25* requires express consent for sensitive personal information. Asylum claim data — persecution history, family details, information about circumstances in a country of origin — is among the most sensitive information that exists. Refuge's consent model goes beyond what Law 25 requires. This is privacy by design, not privacy by compliance.
+Québec's *Loi 25* requires express consent for sensitive personal information. Asylum claim data — persecution history, family details, information about circumstances in a country of origin — is among the most sensitive information that exists. Mon Prologue's consent model goes beyond what Law 25 requires. This is privacy by design, not privacy by compliance.
 
 ---
 
@@ -269,7 +269,7 @@ Start
 ## Sample Clinic Dossier Output
 
 ```
-REFUGE INTAKE DOSSIER
+MON PROLOGUE INTAKE DOSSIER
 ────────────────────────────────────────────────────────
 Session:        #4821-QC
 Country:        Haiti
@@ -378,7 +378,7 @@ npm run dev
 
 ## Legal Disclaimer
 
-Refuge is a preparation and triage tool. It does not constitute legal advice. All AI-generated output — including BOC narrative drafts, coherence flags, and country conditions summaries — must be reviewed and validated by a qualified legal professional before any use in legal proceedings. The platform is designed to support, never replace, the judgment of a licensed lawyer or paralegal.
+Mon Prologue is a preparation and triage tool. It does not constitute legal advice. All AI-generated output — including BOC narrative drafts, coherence flags, and country conditions summaries — must be reviewed and validated by a qualified legal professional before any use in legal proceedings. The platform is designed to support, never replace, the judgment of a licensed lawyer or paralegal.
 
 ---
 

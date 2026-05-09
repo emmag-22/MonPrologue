@@ -43,7 +43,7 @@ export default function Landing() {
 
       {/* App identity */}
       <div className={styles.identity}>
-        <h1 className={styles.appName}>Refuge</h1>
+        <h1 className={styles.appName}>Mon Prologue</h1>
         <p className={styles.tagline}>{t('landing.tagline')}</p>
         <p className={styles.disclaimer}>{t('landing.disclaimer')}</p>
       </div>

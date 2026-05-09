@@ -571,7 +571,7 @@ const translations = {
   },
 
   // Clinic
-  'clinic.nav.logo': { fr: 'Refuge', en: 'Refuge', es: 'Refuge', ht: 'Refuge', ar: 'Refuge' },
+  'clinic.nav.logo': { fr: 'Mon Prologue', en: 'Mon Prologue', es: 'Mon Prologue', ht: 'Mon Prologue', ar: 'Mon Prologue' },
   'clinic.nav.logout': {
     fr: 'Déconnexion',
     en: 'Logout',

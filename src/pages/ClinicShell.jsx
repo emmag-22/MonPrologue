@@ -33,7 +33,7 @@ export default function ClinicShell() {
             color: 'var(--color-primary)',
           }}
         >
-          Refuge
+          Mon Prologue
         </span>
 
         {clinicAuth && (

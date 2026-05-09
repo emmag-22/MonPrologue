@@ -63,7 +63,7 @@ export default function CaseDossier() {
 
   // Download transcript as .txt
   const handleDownloadTranscript = useCallback(() => {
-    let text = `REFUGE CASE TRANSCRIPT\nCase: ${cr.caseId || caseObj?.sessionId || id}\nDate: ${new Date().toISOString().split('T')[0]}\n`
+    let text = `MON PROLOGUE CASE TRANSCRIPT\nCase: ${cr.caseId || caseObj?.sessionId || id}\nDate: ${new Date().toISOString().split('T')[0]}\n`
     for (const item of transcript) {
       if (typeof item === 'string') { text += item + '\n'; continue }
       text += `\nQ: ${item.q}\nA: ${item.a}\n`
@@ -71,7 +71,7 @@ export default function CaseDossier() {
     const blob = new Blob([text], { type: 'text/plain' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `Refuge_Transcript_${cr.caseId || id}_${new Date().toISOString().split('T')[0]}.txt`
+    a.download = `MonPrologue_Transcript_${cr.caseId || id}_${new Date().toISOString().split('T')[0]}.txt`
     a.click()
     URL.revokeObjectURL(a.href)
   }, [transcript, cr.caseId, caseObj, id])
@@ -79,7 +79,7 @@ export default function CaseDossier() {
   // Print as PDF
   const handlePrint = useCallback(() => {
     const prev = document.title
-    document.title = `Refuge_Report_${cr.caseId || id}_${new Date().toISOString().split('T')[0]}`
+    document.title = `MonPrologue_Report_${cr.caseId || id}_${new Date().toISOString().split('T')[0]}`
     window.print()
     document.title = prev
   }, [cr.caseId, id])
