@@ -481,6 +481,36 @@ const translations = {
     ar: 'ميزة الرقم السري قريباً.',
   },
 
+  // Clinic select screen (seeker flow)
+  'clinic.select.title': {
+    fr: 'Choisissez votre clinique / Choose your clinic',
+    en: 'Choose your clinic / Choisissez votre clinique',
+    es: 'Elija su clínica / Choose your clinic',
+    ht: 'Chwazi klinik ou / Choose your clinic',
+    ar: 'اختر عيادتك / Choose your clinic',
+  },
+  'clinic.select.search': {
+    fr: 'Rechercher une clinique…',
+    en: 'Search for a clinic…',
+    es: 'Buscar una clínica…',
+    ht: 'Chèche yon klinik…',
+    ar: 'ابحث عن عيادة…',
+  },
+  'clinic.select.unknown': {
+    fr: "Je ne sais pas encore / I don't know yet",
+    en: "I don't know yet / Je ne sais pas encore",
+    es: 'No lo sé todavía / I don\'t know yet',
+    ht: "Mwen pa konnen ankò / I don't know yet",
+    ar: "لا أعرف بعد / I don't know yet",
+  },
+  'clinic.select.no-results': {
+    fr: 'Aucun résultat.',
+    en: 'No results.',
+    es: 'Sin resultados.',
+    ht: 'Pa gen rezilta.',
+    ar: 'لا توجد نتائج.',
+  },
+
   // Clinic
   'clinic.nav.logo': { fr: 'Refuge', en: 'Refuge', es: 'Refuge', ht: 'Refuge', ar: 'Refuge' },
   'clinic.nav.logout': {
@@ -598,6 +628,7 @@ export function AppProvider({ children }) {
   const [language, setLanguage] = useState('fr')
   const [role, setRole] = useState(null)
   const [sessionPin, setSessionPin] = useState(null)
+  const [selectedClinic, setSelectedClinic] = useState(null)
   const [interviewPhase0, setInterviewPhase0] = useState({})
   const [interviewAnswers, setInterviewAnswers] = useState({})
   const [interviewPhase1, setInterviewPhase1] = useState({})
@@ -617,7 +648,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider
-      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, interviewPhase0, setInterviewPhase0, interviewAnswers, setInterviewAnswers, interviewPhase1, setInterviewPhase1, interviewPhase2, setInterviewPhase2, clinicAuth, setClinicAuth, isAuthenticated, cases: mockCases, t }}
+      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, selectedClinic, setSelectedClinic, interviewPhase0, setInterviewPhase0, interviewAnswers, setInterviewAnswers, interviewPhase1, setInterviewPhase1, interviewPhase2, setInterviewPhase2, clinicAuth, setClinicAuth, isAuthenticated, cases: mockCases, t }}
     >
       {children}
     </AppContext.Provider>
