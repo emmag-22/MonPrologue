@@ -254,8 +254,9 @@ const GROUND_MAP = {
   'Section 97 — Medical Ineligible': 'particular_social_group',
 }
 
-export function getMockDossierForCase(caseObj) {
-  if (!caseObj) return getMockDossierForCase({ country: 'Unknown', claimStrength: 'Moderate', legalCategory: 'Section 96 — Refugee', detailTag: '' })
+export function getMockDossierForCase(caseObj, lang = 'en') {
+  if (!caseObj) return getMockDossierForCase({ country: 'Unknown', claimStrength: 'Moderate', legalCategory: 'Section 96 — Refugee', detailTag: '' }, lang)
+  const fr = lang === 'fr'
 
   const ground = GROUND_MAP[caseObj.legalCategory] || 'political_opinion'
   const isStrong = caseObj.claimStrength === 'Strong' || caseObj.claimStrength === 'Moderate-Strong'
@@ -270,25 +271,25 @@ export function getMockDossierForCase(caseObj) {
     },
     claimStrength: caseObj.claimStrength,
     coherenceFlags: [
-      { area: 'Timeline specificity', detail: 'Can the claimant provide more precise dates for the key persecution events described in the narrative?', irpaRelevance: 'Precise timelines strengthen the narrative coherence assessment under s.96.' },
-      { area: 'Persecutor identification', detail: 'What specific role or capacity did the persecutor(s) hold? Were they state actors, agents of the state, or non-state actors?', irpaRelevance: 'The distinction between state and non-state actors affects the state protection analysis.' },
-      ...(hasIFA ? [{ area: 'Internal Flight Alternative', detail: 'Why was relocation within the country not a viable safety option? What specific risks would the claimant face in other regions?', irpaRelevance: 'The IRB will assess whether a viable IFA exists. This must be explicitly rebutted.' }] : []),
-      { area: 'State protection', detail: 'What specific steps were taken to seek protection from state authorities, and what was the outcome?', irpaRelevance: 'Under s.96, the claimant must demonstrate state protection was unavailable, inadequate, or dangerous to seek.' },
-      { area: 'Corroborating evidence', detail: 'Does the claimant have access to any documentation — medical records, police reports, news articles, witness statements, or photographs?', irpaRelevance: 'Documentary evidence strengthens the claim, though its absence does not preclude protection.' },
+      { area: fr ? 'Précision chronologique' : 'Timeline specificity', detail: fr ? 'Le demandeur peut-il fournir des dates plus précises pour les événements de persécution décrits ?' : 'Can the claimant provide more precise dates for the key persecution events described in the narrative?', irpaRelevance: fr ? 'Une chronologie précise renforce l\'évaluation de la cohérence narrative sous l\'art. 96.' : 'Precise timelines strengthen the narrative coherence assessment under s.96.' },
+      { area: fr ? 'Identification du persécuteur' : 'Persecutor identification', detail: fr ? 'Quel rôle ou quelle capacité le(s) persécuteur(s) avai(en)t-il(s) ? Étaient-ils des acteurs étatiques ou non étatiques ?' : 'What specific role or capacity did the persecutor(s) hold? Were they state actors, agents of the state, or non-state actors?', irpaRelevance: fr ? 'La distinction entre acteurs étatiques et non étatiques affecte l\'analyse de la protection de l\'État.' : 'The distinction between state and non-state actors affects the state protection analysis.' },
+      ...(hasIFA ? [{ area: fr ? 'Possibilité de refuge intérieur' : 'Internal Flight Alternative', detail: fr ? 'Pourquoi la réinstallation dans le pays n\'était-elle pas une option sûre ? Quels risques le demandeur courrait-il dans d\'autres régions ?' : 'Why was relocation within the country not a viable safety option? What specific risks would the claimant face in other regions?', irpaRelevance: fr ? 'La CISR évaluera s\'il existe une PRI viable. Celle-ci doit être explicitement réfutée.' : 'The IRB will assess whether a viable IFA exists. This must be explicitly rebutted.' }] : []),
+      { area: fr ? 'Protection de l\'État' : 'State protection', detail: fr ? 'Quelles démarches ont été entreprises pour obtenir la protection des autorités, et quel en a été le résultat ?' : 'What specific steps were taken to seek protection from state authorities, and what was the outcome?', irpaRelevance: fr ? 'Sous l\'art. 96, le demandeur doit démontrer que la protection de l\'État était inadéquate ou indisponible.' : 'Under s.96, the claimant must demonstrate state protection was unavailable, inadequate, or dangerous to seek.' },
+      { area: fr ? 'Preuves corroborantes' : 'Corroborating evidence', detail: fr ? 'Le demandeur a-t-il accès à de la documentation — dossiers médicaux, rapports de police, articles, témoignages ou photographies ?' : 'Does the claimant have access to any documentation — medical records, police reports, news articles, witness statements, or photographs?', irpaRelevance: fr ? 'Les preuves documentaires renforcent la demande, bien que leur absence n\'exclut pas la protection.' : 'Documentary evidence strengthens the claim, though its absence does not preclude protection.' },
     ],
     ifaAssessment: {
       likely: true,
       addressed: !hasIFA,
       analysis: hasIFA
-        ? 'The Internal Flight Alternative has not been addressed in the current narrative. The IRB is very likely to raise this issue. Counsel should prepare a detailed IFA rebuttal with country-specific evidence.'
-        : 'The claimant has addressed internal relocation. The IFA analysis should be reviewed for completeness before the hearing.',
+        ? (fr ? 'La possibilité de refuge intérieur (PRI) n\'a pas été abordée dans le récit actuel. La CISR est très susceptible de soulever cette question. Le conseiller devrait préparer une réfutation détaillée avec des preuves spécifiques au pays.' : 'The Internal Flight Alternative has not been addressed in the current narrative. The IRB is very likely to raise this issue. Counsel should prepare a detailed IFA rebuttal with country-specific evidence.')
+        : (fr ? 'Le demandeur a abordé la réinstallation interne. L\'analyse de la PRI devrait être revue avant l\'audience.' : 'The claimant has addressed internal relocation. The IFA analysis should be reviewed for completeness before the hearing.'),
     },
     stateProtection: {
       sought: caseObj.detailTag === 'State actor' ? false : true,
       adequate: false,
       analysis: caseObj.detailTag === 'State actor'
-        ? 'The persecutor is identified as a state actor, which fundamentally undermines the availability of state protection. This is a strong element of the claim under s.96.'
-        : 'State protection was either not sought or was inadequate. Further detail on formal complaints or reasons for not seeking protection should be documented.',
+        ? (fr ? 'Le persécuteur est identifié comme un acteur étatique, ce qui compromet fondamentalement la disponibilité de la protection de l\'État. C\'est un élément fort de la demande sous l\'art. 96.' : 'The persecutor is identified as a state actor, which fundamentally undermines the availability of state protection. This is a strong element of the claim under s.96.')
+        : (fr ? 'La protection de l\'État n\'a pas été demandée ou était inadéquate. Des détails supplémentaires sur les plaintes formelles ou les raisons de ne pas avoir cherché protection sont nécessaires.' : 'State protection was either not sought or was inadequate. Further detail on formal complaints or reasons for not seeking protection should be documented.'),
     },
     seekerReport: {
       title: 'Your file is ready',
@@ -311,17 +312,17 @@ export function getMockDossierForCase(caseObj) {
       return {
         caseId,
         priority: daysUntil(bocDate) < 7 ? 'URGENT' : (daysUntil(bocDate) < 30 || caseObj.detailTag === 'Explicit threat' || caseObj.detailTag === 'Minor claimant') ? 'HIGH' : 'NORMAL',
-        currentStatus: caseObj.hearingDate ? 'Pre-hearing preparation' : daysUntil(bocDate) > 0 ? 'Awaiting BOC submission' : 'BOC deadline passed — expedite',
+        currentStatus: caseObj.hearingDate ? (fr ? 'Préparation pré-audience' : 'Pre-hearing preparation') : daysUntil(bocDate) > 0 ? (fr ? 'En attente de soumission du FDA' : 'Awaiting BOC submission') : (fr ? 'Échéance FDA dépassée — accélérer' : 'BOC deadline passed — expedite'),
         narrativeSummary: `The claimant is a national of ${caseObj.country} who seeks refugee protection on the basis of ${ground.replace(/_/g, ' ')}. ${caseObj.detailTag === 'State actor' ? 'The alleged persecutor has been identified as a state actor, which is a significant element strengthening the claim.' : `The claimant reports ${caseObj.detailTag?.toLowerCase() || 'persecution'} in their country of origin.`} The claimant entered Canada and has been residing in Quebec. ${hasIFA ? 'The Internal Flight Alternative has not been addressed in the current narrative and the IRB is likely to raise this issue.' : 'The claimant has addressed the Internal Flight Alternative.'} State protection ${caseObj.detailTag === 'State actor' ? 'is fundamentally compromised given the involvement of state actors' : 'was either not sought or was inadequate'}. The claim strength is assessed as ${caseObj.claimStrength}.`,
         timelineEvents: [
-          { date: fmt(addDays(filed, -365)), event: 'First persecution incident reported by claimant', type: 'persecution' },
-          { date: fmt(addDays(filed, -180)), event: 'Escalation — direct threats to claimant and family', type: 'persecution' },
-          { date: fmt(addDays(filed, -90)), event: `Departed ${caseObj.country}`, type: 'travel' },
-          { date: fmt(addDays(filed, -30)), event: 'Transit through third country', type: 'travel' },
-          { date: fmt(filed), event: 'Arrived in Canada — asylum claim filed', type: 'canada' },
-          { date: fmt(eligDate), event: 'Eligibility interview (estimated)', type: 'canada' },
-          { date: fmt(bocDate), event: 'BOC form deadline', type: 'canada' },
-          ...(caseObj.hearingDate ? [{ date: caseObj.hearingDate, event: 'RPD hearing scheduled', type: 'canada' }] : []),
+          { date: fmt(addDays(filed, -365)), event: fr ? 'Premier incident de persécution signalé' : 'First persecution incident reported by claimant', type: 'persecution' },
+          { date: fmt(addDays(filed, -180)), event: fr ? 'Escalade — menaces directes au demandeur et sa famille' : 'Escalation — direct threats to claimant and family', type: 'persecution' },
+          { date: fmt(addDays(filed, -90)), event: fr ? `Départ de ${caseObj.country}` : `Departed ${caseObj.country}`, type: 'travel' },
+          { date: fmt(addDays(filed, -30)), event: fr ? 'Transit par un pays tiers' : 'Transit through third country', type: 'travel' },
+          { date: fmt(filed), event: fr ? 'Arrivée au Canada — demande d\'asile déposée' : 'Arrived in Canada — asylum claim filed', type: 'canada' },
+          { date: fmt(eligDate), event: fr ? 'Entrevue d\'admissibilité (estimée)' : 'Eligibility interview (estimated)', type: 'canada' },
+          { date: fmt(bocDate), event: fr ? 'Échéance du FDA' : 'BOC form deadline', type: 'canada' },
+          ...(caseObj.hearingDate ? [{ date: caseObj.hearingDate, event: fr ? 'Audience SPR prévue' : 'RPD hearing scheduled', type: 'canada' }] : []),
         ],
         geopoliticalContext: {
           summary: `${caseObj.country} continues to face significant human rights challenges relevant to claims based on ${ground.replace(/_/g, ' ')}. International monitoring organizations have documented systematic patterns of persecution, including restrictions on civil liberties, extrajudicial actions by security forces, and inadequate state protection for vulnerable populations.\n\nRecent developments (2024-2026) indicate that conditions have not substantially improved. ${caseObj.detailTag === 'State actor' ? 'Reports of state-sponsored persecution remain a primary concern, with multiple documented cases of political dissidents and civil society members facing harassment, detention, and violence.' : 'Non-state actors continue to operate with impunity in several regions, and the state\'s capacity to provide adequate protection remains limited.'} The current National Documentation Package should be reviewed for the most recent country condition evidence.`,
@@ -335,31 +336,31 @@ export function getMockDossierForCase(caseObj) {
           ],
         },
         deadlineFlags: [
-          { name: 'Eligibility interview', dueDate: fmt(eligDate), daysRemaining: daysUntil(eligDate) },
-          { name: 'BOC form submission', dueDate: fmt(bocDate), daysRemaining: daysUntil(bocDate) },
-          { name: 'Document disclosure', dueDate: fmt(discDate), daysRemaining: daysUntil(discDate) },
-          { name: caseObj.hearingDate ? 'RPD hearing' : 'Estimated hearing', dueDate: fmt(hearingEst), daysRemaining: daysUntil(hearingEst) },
+          { name: fr ? 'Entrevue d\'admissibilité' : 'Eligibility interview', dueDate: fmt(eligDate), daysRemaining: daysUntil(eligDate) },
+          { name: fr ? 'Soumission du FDA' : 'BOC form submission', dueDate: fmt(bocDate), daysRemaining: daysUntil(bocDate) },
+          { name: fr ? 'Communication de documents' : 'Document disclosure', dueDate: fmt(discDate), daysRemaining: daysUntil(discDate) },
+          { name: caseObj.hearingDate ? (fr ? 'Audience SPR' : 'RPD hearing') : (fr ? 'Audience estimée' : 'Estimated hearing'), dueDate: fmt(hearingEst), daysRemaining: daysUntil(hearingEst) },
         ],
         legalExclusionFlags: [
-          { issue: 'Safe Third Country Agreement', severity: 'MEDIUM', irpaSection: 's.101(1)(e)', explanation: `If the claimant entered Canada from the US at a designated port of entry, the STCA may bar the claim. Exceptions include having family in Canada, being an unaccompanied minor, or holding a valid Canadian visa. Verify entry method.` },
-          { issue: 'Prior claims in other countries', severity: 'LOW', irpaSection: 's.101(1)(c.1)', explanation: 'No indication of prior claims in other countries. Confirm with claimant during BOC preparation.' },
-          { issue: 'Security inadmissibility screening', severity: 'LOW', irpaSection: 's.34 IRPA', explanation: 'No indicators of security-related inadmissibility identified. Standard screening applies.' },
-          ...(caseObj.detailTag === 'Minor claimant' ? [{ issue: 'Minor claimant — designated representative required', severity: 'HIGH', irpaSection: 's.167(2)', explanation: 'The claimant is a minor. A designated representative must be appointed before the RPD hearing. This is a mandatory procedural requirement.' }] : []),
+          { issue: fr ? 'Entente sur les tiers pays sûrs' : 'Safe Third Country Agreement', severity: 'MEDIUM', irpaSection: 's.101(1)(e)', explanation: fr ? 'Si le demandeur est entré au Canada depuis les É.-U. à un point d\'entrée désigné, l\'ETPS pourrait s\'appliquer. Exceptions : famille au Canada, mineur non accompagné, ou visa canadien valide.' : 'If the claimant entered Canada from the US at a designated port of entry, the STCA may bar the claim. Exceptions include having family in Canada, being an unaccompanied minor, or holding a valid Canadian visa. Verify entry method.' },
+          { issue: fr ? 'Demandes antérieures dans d\'autres pays' : 'Prior claims in other countries', severity: 'LOW', irpaSection: 's.101(1)(c.1)', explanation: fr ? 'Aucune indication de demandes antérieures. À confirmer avec le demandeur lors de la préparation du FDA.' : 'No indication of prior claims in other countries. Confirm with claimant during BOC preparation.' },
+          { issue: fr ? 'Filtrage de sécurité' : 'Security inadmissibility screening', severity: 'LOW', irpaSection: 's.34 IRPA', explanation: fr ? 'Aucun indicateur d\'interdiction de territoire pour raisons de sécurité identifié. Filtrage standard applicable.' : 'No indicators of security-related inadmissibility identified. Standard screening applies.' },
+          ...(caseObj.detailTag === 'Minor claimant' ? [{ issue: fr ? 'Demandeur mineur — représentant désigné requis' : 'Minor claimant — designated representative required', severity: 'HIGH', irpaSection: 's.167(2)', explanation: fr ? 'Le demandeur est mineur. Un représentant désigné doit être nommé avant l\'audience de la SPR.' : 'The claimant is a minor. A designated representative must be appointed before the RPD hearing. This is a mandatory procedural requirement.' }] : []),
         ],
         narrativeFlags: [
-          { issue: 'Gap between last incident and departure', phase: 0, answerId: 'p0-5', quote: 'Timeline indicates a gap between the last persecution event and departure from country of origin.' },
-          { issue: 'State protection claim needs detail', phase: 0, answerId: 'p0-6', quote: 'The claimant\'s account of state protection attempts lacks specificity regarding formal complaints or police reports.' },
-          ...(hasIFA ? [{ issue: 'IFA not addressed', phase: 0, answerId: 'p0-7', quote: 'The Internal Flight Alternative has not been addressed. The IRB will likely raise this issue.' }] : []),
-          { issue: 'Persecutor capacity unclear', phase: 1, answerId: 'p1-4', quote: 'The role, reach, and capacity of the persecutor(s) needs further clarification.' },
+          { issue: fr ? 'Écart entre le dernier incident et le départ' : 'Gap between last incident and departure', phase: 0, answerId: 'p0-5', quote: fr ? 'La chronologie indique un écart entre le dernier événement de persécution et le départ du pays d\'origine.' : 'Timeline indicates a gap between the last persecution event and departure from country of origin.' },
+          { issue: fr ? 'La protection de l\'État manque de détails' : 'State protection claim needs detail', phase: 0, answerId: 'p0-6', quote: fr ? 'Le récit du demandeur concernant les tentatives de protection de l\'État manque de précision.' : 'The claimant\'s account of state protection attempts lacks specificity regarding formal complaints or police reports.' },
+          ...(hasIFA ? [{ issue: fr ? 'PRI non abordée' : 'IFA not addressed', phase: 0, answerId: 'p0-7', quote: fr ? 'La possibilité de refuge intérieur n\'a pas été abordée. La CISR soulèvera probablement cette question.' : 'The Internal Flight Alternative has not been addressed. The IRB will likely raise this issue.' }] : []),
+          { issue: fr ? 'Capacité du persécuteur floue' : 'Persecutor capacity unclear', phase: 1, answerId: 'p1-4', quote: fr ? 'Le rôle, la portée et la capacité du/des persécuteur(s) nécessitent des précisions.' : 'The role, reach, and capacity of the persecutor(s) needs further clarification.' },
         ],
         conventionGroundAnalysis: `Primary ground: ${ground.replace(/_/g, ' ')} under IRPA s.96. The claimant from ${caseObj.country} describes persecution consistent with the Convention refugee definition. ${caseObj.legalCategory.includes('97') ? 'A parallel s.97(1) claim for risk to life or cruel and unusual treatment should also be considered.' : ''} The claim strength is assessed as ${caseObj.claimStrength.toLowerCase()}.`,
         narrativeAssessment: 'The narrative provides a substantive foundation but requires targeted supplementation in the flagged areas. Timeline gaps and state protection documentation are the primary areas for counsel attention. These gaps should be explored compassionately — they may reflect trauma, memory fragmentation, or language barriers.',
         recommendedActions: [
-          'Obtain a detailed statutory declaration addressing timeline gaps between key incidents',
-          'Document state protection attempts with specificity, or explain why formal channels were unavailable',
-          hasIFA ? 'Prepare a comprehensive IFA rebuttal supported by current country condition reports' : 'Review IFA position and prepare supporting country condition evidence',
-          'Identify and collect any available corroborating evidence (medical, documentary, testimonial)',
-          'Review National Documentation Package for updated country conditions',
+          fr ? 'Obtenir une déclaration détaillée comblant les lacunes chronologiques entre les incidents clés' : 'Obtain a detailed statutory declaration addressing timeline gaps between key incidents',
+          fr ? 'Documenter les tentatives de protection de l\'État ou expliquer pourquoi les voies formelles n\'étaient pas disponibles' : 'Document state protection attempts with specificity, or explain why formal channels were unavailable',
+          hasIFA ? (fr ? 'Préparer une réfutation complète de la PRI appuyée par des rapports sur les conditions du pays' : 'Prepare a comprehensive IFA rebuttal supported by current country condition reports') : (fr ? 'Revoir la position sur la PRI et préparer des preuves sur les conditions du pays' : 'Review IFA position and prepare supporting country condition evidence'),
+          fr ? 'Identifier et rassembler toute preuve corroborante disponible (médicale, documentaire, testimoniale)' : 'Identify and collect any available corroborating evidence (medical, documentary, testimonial)',
+          fr ? 'Consulter le Cartable national de documentation pour les conditions à jour du pays' : 'Review National Documentation Package for updated country conditions',
         ],
         irpaCitations: [
           's.96 — Convention refugee: well-founded fear of persecution for reasons of race, religion, nationality, membership in a particular social group, or political opinion',
