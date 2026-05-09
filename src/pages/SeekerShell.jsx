@@ -1,6 +1,9 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import Logo from '../components/Logo'
+
+const TOPBAR_HEIGHT = 48
 
 const PHASE_ROUTES = [
   '/seeker/interview/0',
@@ -19,7 +22,7 @@ function currentPhaseFromPath(pathname) {
   return -1
 }
 
-function PhaseNavBar({ t, interviewPhase0, interviewPhase1, interviewPhase2, interviewPhase3 }) {
+function PhaseNavBar({ t, interviewPhase0, interviewPhase1, interviewPhase2, interviewPhase3, topOffset }) {
   const navigate = useNavigate()
   const location = useLocation()
   const currentPhase = currentPhaseFromPath(location.pathname)
@@ -49,7 +52,7 @@ function PhaseNavBar({ t, interviewPhase0, interviewPhase1, interviewPhase2, int
       aria-label="Interview phases"
       style={{
         position: 'sticky',
-        top: 0,
+        top: topOffset,
         zIndex: 100,
         display: 'flex',
         background: 'var(--color-card)',
@@ -167,6 +170,23 @@ export default function SeekerShell() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-bg)', position: 'relative' }}>
+      <header
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 101,
+          height: TOPBAR_HEIGHT,
+          display: 'flex',
+          alignItems: 'center',
+          paddingLeft: '1.25rem',
+          background: 'var(--color-card)',
+          borderBottom: '1px solid var(--color-border)',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+        }}
+      >
+        <Logo size="sm" />
+      </header>
+
       <LanguageSwitcher />
 
       <PhaseNavBar
@@ -175,6 +195,7 @@ export default function SeekerShell() {
         interviewPhase1={interviewPhase1}
         interviewPhase2={interviewPhase2}
         interviewPhase3={interviewPhase3}
+        topOffset={TOPBAR_HEIGHT}
       />
 
       <Outlet />
