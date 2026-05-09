@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
-const VALID = { estabId: 'QC-1042', employeeId: 'LP-8821', password: 'refuge2026' }
+const VALID = { estabId: 'QC-1042', employeeId: 'LP-8821', password: 'monprologue2026' }
 
 export default function ClinicLogin() {
   const { setClinicAuth } = useApp()

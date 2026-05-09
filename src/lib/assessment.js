@@ -342,7 +342,7 @@ function getMockOpenJusticeResult(interviewAnswers) {
       'Narrative Coherence': 'Gaps identified',
       'IFA Assessment': 'Not fully addressed',
     },
-    finalOutput: `REFUGE INTAKE DOSSIER\n────────────────────\nCountry: ${country}\nPrimary ground: Political opinion\nClaim strength: Moderate\n\n[Mock dossier — API unavailable]\n\nThis is placeholder data. Connect the backend API for real analysis.`,
+    finalOutput: `MON PROLOGUE INTAKE DOSSIER\n────────────────────\nCountry: ${country}\nPrimary ground: Political opinion\nClaim strength: Moderate\n\n[Mock dossier — API unavailable]\n\nThis is placeholder data. Connect the backend API for real analysis.`,
     nodeResults: [],
     totalTokens: 0,
   }

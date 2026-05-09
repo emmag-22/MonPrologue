@@ -429,5 +429,5 @@ app.get('/{*path}', (req, res) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`Refuge API server running on http://localhost:${PORT}`)
+  console.log(`Mon Prologue API server running on http://localhost:${PORT}`)
 })
