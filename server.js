@@ -429,9 +429,10 @@ app.post('/api/cases', async (req, res) => {
     if (!clinic) return res.status(400).json({ error: 'Clinic is required' })
 
     const p0 = answers?.p0 || {}
-    const country = typeof p0[2] === 'string' ? p0[2] : (p0[0] || 'Unknown')
-    const ground = typeof p0[3] === 'string' ? p0[3] : 'unknown'
-    const groundLabel = { race: 'Race', religion: 'Religion', nationality: 'Nationality', political: 'Political opinion', psg: 'Particular social group' }[ground] || ground
+    // Phase 0 order: 0=Country, 1=Province/duration, 2=Gender, 3=Age, 4=Arrival method, 5=Arrival date
+    const country = typeof p0[0] === 'string' ? p0[0] : 'Unknown'
+    const gender = typeof p0[2] === 'string' ? p0[2] : ''
+    const ageGroup = typeof p0[3] === 'string' ? p0[3] : ''
 
     const caseId = `${Math.floor(1000 + Math.random() * 9000)}-QC`
     const now = new Date().toISOString()
