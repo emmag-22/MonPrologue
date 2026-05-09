@@ -18,7 +18,7 @@ const outcomeColor = (o) => o === 'Accepted' ? '#2eb87e' : o === 'Rejected' ? '#
 
 export default function CaseDossier() {
   const { id } = useParams()
-  const { isAuthenticated, cases, interviewAnswers, interviewPhase1, interviewPhase2, t } = useApp()
+  const { isAuthenticated, cases, interviewAnswers, interviewPhase1, interviewPhase2, language, t } = useApp()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function CaseDossier() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const caseObj = useMemo(() => cases.find(c => c.id === id), [cases, id])
-  const dossier = useMemo(() => getMockDossierForCase(caseObj), [caseObj])
+  const dossier = useMemo(() => getMockDossierForCase(caseObj, language), [caseObj, language])
   const cr = dossier.clinicReport
 
   const [similarCases, setSimilarCases] = useState(null)
