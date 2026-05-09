@@ -4,32 +4,11 @@ import { useApp } from '../context/AppContext'
 import { getPriority } from '../lib/mockCases'
 
 const PRIORITY_COLOR = {
-  red:    'var(--urgent-red)',
-  orange: 'var(--urgent-orange)',
-  yellow: 'var(--urgent-yellow)',
-  green:  'var(--urgent-green)',
+  red:    '#FF2D2D',
+  orange: '#FF8C00',
+  yellow: '#FFD700',
+  green:  '#00CC44',
 }
-
-const STRENGTH_STYLE = {
-  'Strong':          { color: '#2eb87e', background: '#071f14' },
-  'Moderate-Strong': { color: '#1a9b8a', background: '#071917' },
-  'Moderate':        { color: '#e8a020', background: '#1f1400' },
-  'Weak':            { color: '#d94f3d', background: '#1a0806' },
-}
-
-const STRENGTH_LABEL = {
-  'Strong':          'STRONG',
-  'Moderate-Strong': 'MOD–STRONG',
-  'Moderate':        'MODERATE',
-  'Weak':            'WEAK',
-}
-
-const RED_FLAG_TAGS = new Set([
-  'Explicit threat',
-  'Imminent bodily harm',
-  'Physical violence',
-  'Minor claimant',
-])
 
 const TABS = [
   { key: 'open',     fr: 'Dossiers ouverts',  en: 'Open cases' },
@@ -37,21 +16,15 @@ const TABS = [
   { key: 'archived', fr: 'Archivés',           en: 'Archived' },
 ]
 
-function formatDate(iso) {
-  const d = new Date(iso)
-  const m = ['jan', 'fév', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc']
-  return `${d.getDate()} ${m[d.getMonth()]} ${d.getFullYear()}`
-}
+const LEGEND = [
+  { color: '#FF2D2D', label: 'Audience imminente / Menace explicite' },
+  { color: '#FF8C00', label: 'Audience dans 30 jours / Dossier ancien' },
+  { color: '#FFD700', label: 'Audience dans 60 jours' },
+  { color: '#00CC44', label: 'Nouveau dossier' },
+]
 
 function CaseCard({ caseObj, onClick }) {
-  const priority   = getPriority(caseObj)
-  const isMedical  = caseObj.legalCategory === 'Section 97 — Medical Ineligible'
-  const isRedTag   = RED_FLAG_TAGS.has(caseObj.detailTag)
-  const daysSince  = Math.round((Date.now() - new Date(caseObj.filedDate).getTime()) / 86400000)
-
-  const strengthStyle = isMedical
-    ? { color: '#8a9bb0', background: '#1a2e42' }
-    : STRENGTH_STYLE[caseObj.claimStrength] ?? STRENGTH_STYLE['Moderate']
+  const priority = getPriority(caseObj)
 
   return (
     <button
@@ -60,18 +33,18 @@ function CaseCard({ caseObj, onClick }) {
         display: 'flex',
         width: '100%',
         textAlign: 'left',
-        background: 'var(--navy-mid)',
-        border: '1px solid var(--border)',
-        borderRadius: 6,
+        background: 'var(--color-card)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-card)',
         overflow: 'hidden',
         cursor: 'pointer',
-        transition: 'border-color 0.15s',
+        transition: 'box-shadow 0.15s',
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--navy-light)')}
-      onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)')}
+      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
     >
-      {/* Urgency band */}
-      <div style={{ width: 4, background: PRIORITY_COLOR[priority], flexShrink: 0 }} />
+      {/* Urgency sidebar */}
+      <div style={{ width: 10, background: PRIORITY_COLOR[priority], flexShrink: 0 }} />
 
       {/* Content */}
       <div
@@ -80,87 +53,27 @@ function CaseCard({ caseObj, onClick }) {
           padding: '0.75rem 1rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.45rem',
+          gap: '0.3rem',
         }}
       >
-        {/* Row 1: session ID + strength badge */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span
-            style={{
-              fontFamily: 'monospace',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              color: 'var(--off-white)',
-              letterSpacing: '0.04em',
-            }}
-          >
-            {caseObj.sessionId}
-          </span>
-          <span
-            style={{
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              padding: '0.2rem 0.55rem',
-              borderRadius: 999,
-              ...strengthStyle,
-            }}
-          >
-            {STRENGTH_LABEL[caseObj.claimStrength]}
-          </span>
-        </div>
-
-        {/* Row 2: flag + country */}
-        <div
+        <span
           style={{
-            fontSize: '0.9rem',
-            color: 'var(--off-white)',
-            fontWeight: 500,
-          }}
-        >
-          {caseObj.countryFlag}&nbsp;&nbsp;{caseObj.country}
-        </div>
-
-        {/* Row 3: legal category */}
-        <div
-          style={{
-            fontSize: '0.72rem',
-            color: 'var(--text-muted)',
             fontFamily: 'monospace',
-            letterSpacing: '0.02em',
+            fontSize: '0.82rem',
+            fontWeight: 700,
+            color: 'var(--color-text)',
+            letterSpacing: '0.04em',
           }}
         >
-          {caseObj.legalCategory}
-        </div>
-
-        {/* Row 4: detail tag + days since filing */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span
-            style={{
-              fontSize: '0.68rem',
-              fontWeight: 500,
-              padding: '0.2rem 0.55rem',
-              borderRadius: 999,
-              background: isRedTag ? 'rgba(217,79,61,0.12)' : 'rgba(138,155,176,0.1)',
-              color: isRedTag ? 'var(--urgent-red)' : 'var(--text-muted)',
-              border: isRedTag ? '1px solid rgba(217,79,61,0.3)' : '1px solid transparent',
-              boxShadow: isRedTag ? '0 0 8px rgba(217,79,61,0.25)' : 'none',
-            }}
-          >
-            {caseObj.detailTag}
-          </span>
-          <span
-            style={{
-              fontSize: '0.72rem',
-              color: 'var(--text-muted)',
-              fontFamily: 'monospace',
-              letterSpacing: '0.02em',
-            }}
-          >
-            {daysSince}j · {formatDate(caseObj.filedDate)}
-          </span>
-        </div>
+          {caseObj.sessionId}
+        </span>
+        <span style={{ fontSize: '0.9rem', color: 'var(--color-text)', fontWeight: 500 }}>
+          {caseObj.countryFlag}&nbsp;&nbsp;{caseObj.country}
+        </span>
       </div>
+
+      {/* Right urgency bar */}
+      <div style={{ width: 6, background: PRIORITY_COLOR[priority], flexShrink: 0 }} />
     </button>
   )
 }
@@ -180,13 +93,13 @@ export default function ClinicDashboard() {
   const visible = cases.filter((c) => c.status === activeTab)
 
   return (
-    <div style={{ minHeight: 'calc(100vh - 52px)', background: 'var(--navy)' }}>
+    <div style={{ minHeight: 'calc(100vh - 56px)', padding: '0 0 3rem' }}>
       {/* Tab bar */}
       <div
         style={{
           display: 'flex',
-          borderBottom: '1px solid var(--border)',
-          background: 'var(--navy-mid)',
+          borderBottom: '1px solid var(--color-border)',
+          background: 'var(--color-card)',
           padding: '0 1.5rem',
         }}
       >
@@ -200,10 +113,12 @@ export default function ClinicDashboard() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                padding: '0.75rem 1.25rem 0.65rem',
+                padding: '0.8rem 1.25rem 0.65rem',
                 background: 'none',
                 border: 'none',
-                borderBottom: active ? '2px solid var(--off-white)' : '2px solid transparent',
+                borderBottom: active
+                  ? '2px solid var(--color-primary)'
+                  : '2px solid transparent',
                 cursor: 'pointer',
                 marginBottom: '-1px',
                 gap: '0.05rem',
@@ -214,10 +129,9 @@ export default function ClinicDashboard() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.45rem',
-                  fontSize: '0.82rem',
+                  fontSize: '0.85rem',
                   fontWeight: active ? 600 : 400,
-                  color: active ? 'var(--off-white)' : 'var(--text-muted)',
-                  letterSpacing: '0.01em',
+                  color: active ? 'var(--color-primary)' : 'var(--color-muted)',
                 }}
               >
                 {tab.fr}
@@ -225,16 +139,18 @@ export default function ClinicDashboard() {
                   style={{
                     fontSize: '0.65rem',
                     fontWeight: 600,
-                    padding: '0.05rem 0.4rem',
+                    padding: '0.05rem 0.45rem',
                     borderRadius: 999,
-                    background: active ? 'var(--navy-light)' : 'rgba(138,155,176,0.1)',
-                    color: active ? 'var(--off-white)' : 'var(--text-muted)',
+                    background: active
+                      ? 'rgba(13,92,58,0.1)'
+                      : 'rgba(122,122,114,0.1)',
+                    color: active ? 'var(--color-primary)' : 'var(--color-muted)',
                   }}
                 >
                   {tabCounts[tab.key]}
                 </span>
               </span>
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.68rem', color: 'var(--color-muted)' }}>
                 {tab.en}
               </span>
             </button>
@@ -250,16 +166,17 @@ export default function ClinicDashboard() {
           padding: '1.25rem 1.5rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.6rem',
+          gap: '0.5rem',
         }}
       >
         {visible.length === 0 ? (
           <p
             style={{
               textAlign: 'center',
-              color: 'var(--text-muted)',
+              color: 'var(--color-muted)',
               fontSize: '0.85rem',
               marginTop: '3rem',
+              fontStyle: 'italic',
             }}
           >
             Aucun dossier · No cases
@@ -273,6 +190,44 @@ export default function ClinicDashboard() {
             />
           ))
         )}
+      </div>
+
+      {/* Legend */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '1.25rem',
+          left: '1.25rem',
+          background: 'var(--color-card)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 8,
+          padding: '0.6rem 0.85rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.35rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          zIndex: 50,
+        }}
+      >
+        {LEGEND.map(({ color, label }) => (
+          <div
+            key={color}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 2,
+                background: color,
+                flexShrink: 0,
+              }}
+            />
+            <span style={{ fontSize: '0.68rem', color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
+              {label}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   )
