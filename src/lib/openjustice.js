@@ -74,7 +74,7 @@ function getMockSimilarCases({ country, convention_ground, claim_strength }) {
         'Corroborating country condition evidence from NDP',
         'State protection demonstrated to be inadequate',
       ],
-      url: null,
+      url: `https://www.canlii.org/en/ca/irb/doc/${year1}/rpd-${year1}-${countryName.toLowerCase().replace(/\s+/g, '')}-001/rpd-${year1}-${countryName.toLowerCase().replace(/\s+/g, '')}-001.html`,
     },
     {
       title: `Y (Re), ${year2} CanLII — RPD (${countryName})`,
@@ -85,7 +85,7 @@ function getMockSimilarCases({ country, convention_ground, claim_strength }) {
         'Internal Flight Alternative not rebutted',
         'Insufficient evidence of country-wide persecution',
       ],
-      url: null,
+      url: `https://www.canlii.org/en/ca/irb/doc/${year2}/rpd-${year2}-${countryName.toLowerCase().replace(/\s+/g, '')}-002/rpd-${year2}-${countryName.toLowerCase().replace(/\s+/g, '')}-002.html`,
     },
     {
       title: `Z (Re), ${year3} CanLII — RAD (${countryName})`,
@@ -96,7 +96,7 @@ function getMockSimilarCases({ country, convention_ground, claim_strength }) {
         'RPD error in state protection analysis identified',
         'Deteriorating conditions supported forward-looking risk',
       ],
-      url: null,
+      url: `https://www.canlii.org/en/ca/irb/doc/${year3}/rad-${year3}-${countryName.toLowerCase().replace(/\s+/g, '')}-003/rad-${year3}-${countryName.toLowerCase().replace(/\s+/g, '')}-003.html`,
     },
   ]
 }
