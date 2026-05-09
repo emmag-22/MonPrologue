@@ -4,6 +4,9 @@ import SeekerShell from './pages/SeekerShell'
 import SeekerWelcome from './pages/SeekerWelcome'
 import PinDisplay from './pages/seeker/PinDisplay'
 import InterviewPhase1 from './pages/seeker/InterviewPhase1'
+import InterviewPhase2 from './pages/seeker/InterviewPhase2'
+import InterviewPhase3 from './pages/seeker/InterviewPhase3'
+import SeekerReport from './pages/seeker/SeekerReport'
 import ClinicShell from './pages/ClinicShell'
 import ClinicLogin from './pages/ClinicLogin'
 import ClinicDashboard from './pages/ClinicDashboard'
@@ -16,7 +19,10 @@ export default function App() {
         <Route index element={<SeekerWelcome />} />
         <Route path="pin" element={<PinDisplay />} />
         <Route path="interview/1" element={<InterviewPhase1 />} />
-        {/* TODO: interview/2 (AI follow-ups), report, share */}
+        <Route path="interview/2" element={<InterviewPhase2 />} />
+        <Route path="interview/3" element={<InterviewPhase3 />} />
+        <Route path="report" element={<SeekerReport />} />
+        {/* TODO: share */}
       </Route>
       <Route path="/clinic" element={<ClinicShell />}>
         <Route index element={<ClinicLogin />} />
