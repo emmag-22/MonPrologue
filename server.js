@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -7,7 +8,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const app = express()
 app.use(cors())
-app.use(express.json({ limit: '1mb' }))
+app.use(express.json({ limit: '2mb' }))
 
 // Serve built frontend in production
 app.use(express.static(join(__dirname, 'dist')))
@@ -17,8 +18,56 @@ const OPENJUSTICE_API_KEY = process.env.OPENJUSTICE_API_KEY
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
 const OPENJUSTICE_FLOW_ID = process.env.OPENJUSTICE_FLOW_ID || '4567a9b4-ed32-4336-9bfc-af64442bf6dc'
 
-// ── Helper: call Claude API ──
-async function callClaude({ system, userMessage, model = 'claude-sonnet-4-6', maxTokens = 4096 }) {
+// ── Load PDFs once at startup ──
+import { readdirSync } from 'fs'
+let IRPA_B64 = null
+let GUIDE_B64 = null
+try {
+  const pdfDir = join(__dirname, 'public/pdfs')
+  const files = readdirSync(pdfDir)
+  const irpaFile = files.find(f => f.toLowerCase().includes('loi') || f.toLowerCase().includes('irpa') || f.toLowerCase().includes('immigration'))
+  const guideFile = files.find(f => f.includes('C-2') || f.toLowerCase().includes('guide') || f.toLowerCase().includes('asylum'))
+  if (irpaFile) {
+    IRPA_B64 = readFileSync(join(pdfDir, irpaFile)).toString('base64')
+    console.log(`Loaded IRPA PDF: ${irpaFile}`)
+  } else { console.warn('IRPA PDF not found in public/pdfs/') }
+  if (guideFile) {
+    GUIDE_B64 = readFileSync(join(pdfDir, guideFile)).toString('base64')
+    console.log(`Loaded guide PDF: ${guideFile}`)
+  } else { console.warn('Guide PDF not found in public/pdfs/') }
+} catch (e) { console.warn('Error loading PDFs:', e.message) }
+
+// ── Helper: call Claude with optional PDF documents ──
+async function callClaude({ system, userContent, model = 'claude-sonnet-4-6', maxTokens = 4096, includePdfs = false }) {
+  // Build content blocks
+  const content = []
+
+  if (includePdfs) {
+    if (IRPA_B64) {
+      content.push({
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: IRPA_B64 },
+        title: 'Immigration and Refugee Protection Act (IRPA)',
+        context: 'Canadian federal legislation governing refugee claims. Use this to cite specific IRPA sections in your analysis.',
+      })
+    }
+    if (GUIDE_B64) {
+      content.push({
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: GUIDE_B64 },
+        title: 'Quebec Asylum Seeker Guide',
+        context: 'Quebec provincial guide for asylum seekers. Use this to identify available resources and services.',
+      })
+    }
+  }
+
+  // Add the text message
+  if (typeof userContent === 'string') {
+    content.push({ type: 'text', text: userContent })
+  } else {
+    content.push(...userContent)
+  }
+
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -30,7 +79,7 @@ async function callClaude({ system, userMessage, model = 'claude-sonnet-4-6', ma
       model,
       max_tokens: maxTokens,
       system,
-      messages: [{ role: 'user', content: userMessage }],
+      messages: [{ role: 'user', content }],
     }),
   })
   if (!res.ok) {
@@ -39,6 +88,16 @@ async function callClaude({ system, userMessage, model = 'claude-sonnet-4-6', ma
   }
   const data = await res.json()
   return data.content[0].text
+}
+
+// Helper: extract JSON from Claude response
+function extractJSON(text) {
+  const match = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/) || text.match(/(\[[\s\S]*\])/)
+  if (match) {
+    try { return JSON.parse(match[1] || match[0]) } catch {}
+  }
+  try { return JSON.parse(text) } catch {}
+  return null
 }
 
 // ── 1. Generate follow-up questions (Phase 3) ──
@@ -67,11 +126,10 @@ Rules:
 
     const text = await callClaude({
       system,
-      userMessage: `Client answers:\n\n${context}\n\nGenerate the follow-up questions in ${language}.`,
+      userContent: `Client answers:\n\n${context}\n\nGenerate the follow-up questions in ${language}.`,
       maxTokens: 1024,
     })
 
-    // Extract JSON array from response
     const match = text.match(/\[[\s\S]*\]/)
     const questions = match ? JSON.parse(match[0]) : []
     res.json({ questions })
@@ -118,7 +176,6 @@ app.post('/api/analyze', async (req, res) => {
 
     const data = await ojRes.json()
 
-    // Extract structured facts
     const facts = {}
     for (const [, fact] of Object.entries(data.facts || {})) {
       if (fact.label) facts[fact.label] = fact.prediction
@@ -145,44 +202,19 @@ app.post('/api/generate-boc', async (req, res) => {
 
     const system = `You are a legal writing assistant helping prepare Basis of Claim (BOC) narratives for refugee claimants in Canada. You work alongside legal professionals at Quebec legal aid clinics.
 
-You will receive structured intake data and a legal analysis from the OpenJustice reasoning flow.
-
 Generate TWO versions of a BOC narrative:
 
-**SEEKER VERSION:**
-- Plain, warm language at a grade 6 reading level
-- In the claimant's voice ("I left my country because...")
-- No legal jargon, encouraging tone
+**SEEKER VERSION:** Plain, warm language at grade 6 reading level. In claimant's voice. No legal jargon.
 
-**CLINIC VERSION:**
-- Proper IRB BOC format
-- Addresses the Convention refugee ground, state protection, and IFA
-- Flags areas needing strengthening
-- Professional legal register, in English
+**CLINIC VERSION:** Proper IRB BOC format. Addresses Convention ground, state protection, IFA. Flags areas needing strengthening.
 
-RULES:
-- Never assess credibility or truthfulness
-- Never fabricate details not in the intake
-- Flag gaps rather than filling them
-- Narrative gaps may reflect trauma — note respectfully`
+RULES: Never assess credibility. Never fabricate details. Flag gaps rather than filling them. Narrative gaps may reflect trauma.`
 
-    const userMessage = `## Intake Data
-Country: ${intake.country}
-Ground: ${intake.ground}
-Narrative: ${intake.narrative}
-Timeline: ${intake.timeline}
-State protection: ${intake.stateProtection}
-IFA: ${intake.internalFlight}
-Time in Canada: ${intake.timeInCanada}
-Sex: ${intake.sex}
-Age: ${intake.ageGroup}
+    const text = await callClaude({
+      system,
+      userContent: `## Intake Data\nCountry: ${intake.country}\nGround: ${intake.ground}\nNarrative: ${intake.narrative}\nTimeline: ${intake.timeline}\nState protection: ${intake.stateProtection}\nIFA: ${intake.internalFlight}\nTime in Canada: ${intake.timeInCanada}\nSex: ${intake.sex}\nAge: ${intake.ageGroup}\n\n## OpenJustice Analysis\n${dossier}`,
+    })
 
-## OpenJustice Analysis
-${dossier}`
-
-    const text = await callClaude({ system, userMessage })
-
-    // Split into seeker and clinic versions
     const markers = ['CLINIC VERSION', 'LEGAL VERSION', 'IRB VERSION', '## Clinic', '## Legal']
     let splitIdx = -1
     for (const m of markers) {
@@ -196,6 +228,143 @@ ${dossier}`
     })
   } catch (err) {
     console.error('generate-boc error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── 4. Full assessment with legislation PDFs ──
+app.post('/api/assess', async (req, res) => {
+  try {
+    const { answers, language } = req.body
+
+    const system = `You are an expert Canadian immigration lawyer specializing in refugee protection claims under the Immigration and Refugee Protection Act (IRPA). You have been provided with:
+1. The full text of the IRPA
+2. The Quebec asylum seeker guide
+
+Analyze the claimant's answers against the legislation and produce a comprehensive JSON assessment.
+
+You MUST output ONLY valid JSON with this exact structure:
+{
+  "conventionGround": {
+    "primary": "race|religion|nationality|political_opinion|particular_social_group",
+    "analysis": "2-3 sentence explanation of why this ground applies",
+    "irpaSections": ["s.96", "s.97(1)"],
+    "strength": "strong|moderate|weak"
+  },
+  "claimStrength": "Strong|Moderate-Strong|Moderate|Weak|Insufficient",
+  "coherenceFlags": [
+    {
+      "area": "short label (e.g. 'Timeline gap')",
+      "detail": "specific question for the lawyer to explore — never a credibility judgment",
+      "irpaRelevance": "why this matters under IRPA"
+    }
+  ],
+  "ifaAssessment": {
+    "likely": true|false,
+    "addressed": true|false,
+    "analysis": "1-2 sentences"
+  },
+  "stateProtection": {
+    "sought": true|false,
+    "adequate": true|false,
+    "analysis": "1-2 sentences"
+  },
+  "seekerReport": {
+    "title": "plain-language title in the claimant's language",
+    "summary": "3-5 sentences in warm, simple language (grade 6) explaining what was found. In the claimant's language. No legal jargon. Encouraging.",
+    "nextSteps": ["step 1 in plain language", "step 2", "step 3"],
+    "safetyMessage": "reassuring message about their safety and rights in the claimant's language"
+  },
+  "clinicReport": {
+    "conventionGroundAnalysis": "detailed legal analysis citing IRPA sections",
+    "narrativeAssessment": "assessment of narrative completeness and coherence — flag gaps as lawyer preparation questions, NEVER as credibility concerns",
+    "recommendedActions": ["action 1 for lawyer", "action 2", "action 3"],
+    "irpaCitations": ["full citation with section number and relevance"],
+    "riskLevel": "high|medium|low",
+    "estimatedProcessingNotes": "relevant procedural notes"
+  },
+  "resources": [
+    {
+      "name": "resource name",
+      "description": "what they offer",
+      "contact": "phone or website if known",
+      "relevance": "why this resource matches this claimant"
+    }
+  ]
+}
+
+CRITICAL RULES:
+- All coherenceFlags must be framed as questions for the lawyer, NEVER as credibility judgments
+- Narrative gaps may reflect trauma, memory fragmentation, or translation — note this
+- The seekerReport must be in the language specified (${language})
+- The clinicReport must be in English (standard for IRB)
+- Cite specific IRPA sections where relevant
+- Resources should be Quebec-specific where possible
+- If information is insufficient, say so — never fabricate`
+
+    const text = await callClaude({
+      system,
+      userContent: answers,
+      includePdfs: true,
+      maxTokens: 8192,
+    })
+
+    const parsed = extractJSON(text)
+    if (!parsed) throw new Error('Failed to parse assessment JSON')
+
+    res.json(parsed)
+  } catch (err) {
+    console.error('assess error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── 5. Generate legislation-grounded Phase 2 questions ──
+app.post('/api/assess-phase1', async (req, res) => {
+  try {
+    const { answers, language } = req.body
+
+    const system = `You are a Canadian refugee lawyer. You have the IRPA and Quebec asylum seeker guide. Based on the claimant's Phase 1 intake answers, generate personalized narrative interview questions.
+
+Output ONLY valid JSON:
+{
+  "questions": [
+    {
+      "id": "p2q1",
+      "text": "the question in ${language}",
+      "purpose": "why this question matters legally (English, for internal use)",
+      "irpaSection": "relevant IRPA section if applicable",
+      "inputType": "text|choice",
+      "choices": ["only if inputType is choice"]
+    }
+  ],
+  "initialAssessment": {
+    "likelyGround": "preliminary Convention ground",
+    "keyAreas": ["area needing exploration 1", "area 2"],
+    "urgencyIndicators": ["any flags suggesting urgency"]
+  }
+}
+
+Generate 12-16 questions. Questions must be:
+- Specific to this claimant's country, ground, and situation
+- In ${language} (question text only — purpose stays English)
+- Compassionate and non-judgmental
+- Ordered from least to most sensitive
+- Covering: background, persecution details, evidence, state protection, IFA, fear of return`
+
+    const text = await callClaude({
+      system,
+      userContent: answers,
+      includePdfs: true,
+      maxTokens: 4096,
+    })
+
+    const parsed = extractJSON(text)
+    if (!parsed) throw new Error('Failed to parse phase1 assessment JSON')
+
+    res.json(parsed)
+  } catch (err) {
+    console.error('assess-phase1 error:', err.message)
     res.status(500).json({ error: err.message })
   }
 })
