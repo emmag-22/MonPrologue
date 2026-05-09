@@ -2,26 +2,26 @@ import { useState, useEffect, useRef } from 'react'
 import { useApp } from '../context/AppContext'
 
 const LANGUAGES = [
-  { code: 'fr', label: 'Français' },
-  { code: 'en', label: 'English' },
-  { code: 'es', label: 'Español' },
-  { code: 'ar', label: 'العربية' },
-  { code: 'pt', label: 'Português' },
-  { code: 'ht', label: 'Kreyòl ayisyen' },
-  { code: 'so', label: 'Soomaali' },
-  { code: 'ti', label: 'ትግርኛ' },
-  { code: 'am', label: 'አማርኛ' },
-  { code: 'hi', label: 'हिन्दी' },
-  { code: 'bn', label: 'বাংলা' },
-  { code: 'ur', label: 'اردو' },
-  { code: 'tr', label: 'Türkçe' },
-  { code: 'fa', label: 'فارسی' },
-  { code: 'ru', label: 'Русский' },
-  { code: 'uk', label: 'Українська' },
-  { code: 'ro', label: 'Română' },
-  { code: 'sw', label: 'Kiswahili' },
-  { code: 'wo', label: 'Wolof' },
-  { code: 'zh', label: '中文' },
+  { code: 'fr',  flag: '🇫🇷', label: 'Français' },
+  { code: 'en',  flag: '🇬🇧', label: 'English' },
+  { code: 'es',  flag: '🇪🇸', label: 'Español' },
+  { code: 'ht',  flag: '🇭🇹', label: 'Haitian Creole' },
+  { code: 'ar',  flag: '🇸🇦', label: 'Arabic / العربية' },
+  { code: 'pt',  flag: '🇵🇹', label: 'Português' },
+  { code: 'so',  flag: '🇸🇴', label: 'Somali' },
+  { code: 'ti',  flag: '🇪🇹', label: 'Tigrinya' },
+  { code: 'hi',  flag: '🇮🇳', label: 'Hindi' },
+  { code: 'fil', flag: '🇵🇭', label: 'Filipino' },
+  { code: 'uk',  flag: '🇺🇦', label: 'Українська' },
+  { code: 'fa',  flag: '🇮🇷', label: 'فارسی' },
+  { code: 'zh',  flag: '🇨🇳', label: '中文' },
+  { code: 'ro',  flag: '🇷🇴', label: 'Română' },
+  { code: 'tr',  flag: '🇹🇷', label: 'Türkçe' },
+  { code: 'bn',  flag: '🇧🇩', label: 'বাংলা' },
+  { code: 'ur',  flag: '🇵🇰', label: 'اردو' },
+  { code: 'sw',  flag: '🇰🇪', label: 'Swahili' },
+  { code: 'wo',  flag: '🇸🇳', label: 'Wolof' },
+  { code: 'ru',  flag: '🇷🇺', label: 'Русский' },
 ]
 
 export default function LanguageSwitcher({ containerStyle }) {
@@ -58,7 +58,7 @@ export default function LanguageSwitcher({ containerStyle }) {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.35rem',
+          gap: '0.4rem',
           padding: '0.5rem 0.75rem',
           background: 'var(--color-card)',
           border: '1.5px solid var(--color-border)',
@@ -72,23 +72,7 @@ export default function LanguageSwitcher({ containerStyle }) {
           whiteSpace: 'nowrap',
         }}
       >
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-          style={{ flexShrink: 0 }}
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M2 12h20" />
-          <path d="M12 2a15.3 15.3 0 010 20" />
-          <path d="M12 2a15.3 15.3 0 000 20" />
-        </svg>
+        <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{current.flag}</span>
         {current.label}
       </button>
 
@@ -102,34 +86,42 @@ export default function LanguageSwitcher({ containerStyle }) {
             border: '1.5px solid var(--color-border)',
             borderRadius: 'var(--radius-card)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-            width: 200,
+            width: 220,
             maxHeight: 360,
             overflowY: 'auto',
             padding: '0.4rem',
           }}
         >
-          {LANGUAGES.map((lang) => (
-            <button
-              key={lang.code}
-              onClick={() => { setLanguage(lang.code); setOpen(false) }}
-              style={{
-                display: 'block',
-                width: '100%',
-                textAlign: 'left',
-                padding: '0.5rem 0.75rem',
-                borderRadius: 6,
-                fontSize: '0.9rem',
-                fontWeight: language === lang.code ? 600 : 400,
-                color: language === lang.code ? 'var(--color-primary)' : 'var(--color-text)',
-                background: language === lang.code ? '#F0F5F2' : 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                minHeight: 36,
-              }}
-            >
-              {lang.label}
-            </button>
-          ))}
+          {LANGUAGES.map((lang) => {
+            const active = language === lang.code
+            return (
+              <button
+                key={lang.code}
+                onClick={() => { setLanguage(lang.code); setOpen(false) }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: 6,
+                  fontSize: '0.9rem',
+                  fontWeight: active ? 600 : 400,
+                  color: active ? 'var(--color-primary)' : 'var(--color-text)',
+                  background: active ? '#F0F5F2' : 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  minHeight: 38,
+                }}
+              >
+                <span style={{ fontSize: '1.15rem', lineHeight: 1, flexShrink: 0 }}>
+                  {lang.flag}
+                </span>
+                {lang.label}
+              </button>
+            )
+          })}
         </div>
       )}
     </div>
