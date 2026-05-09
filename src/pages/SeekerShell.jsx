@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 export default function SeekerShell() {
   const { t } = useApp()
@@ -10,6 +11,7 @@ export default function SeekerShell() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-bg)', position: 'relative' }}>
+      <LanguageSwitcher />
       <Outlet />
 
       {/* Pause / come back later button */}

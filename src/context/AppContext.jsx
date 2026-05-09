@@ -1,6 +1,88 @@
 import { createContext, useContext, useState, useCallback } from 'react'
 
 const translations = {
+  // ── Interview navigation ──
+  'interview.prev': { fr: '← Retour', en: '← Back', es: '← Atrás', ht: '← Retounen' },
+  'interview.next': { fr: 'Suivant →', en: 'Next →', es: 'Siguiente →', ht: 'Swivan →' },
+  'interview.skip': { fr: 'Passer', en: 'Skip', es: 'Omitir', ht: 'Pase' },
+  'interview.confirm.question': { fr: 'C\'est exact ?', en: 'Is that right?', es: '¿Es correcto?', ht: 'Eske sa a kòrèk?' },
+  'interview.confirm.yes': { fr: 'Oui, c\'est ça', en: 'Yes, that\'s right', es: 'Sí, correcto', ht: 'Wi, sa a kòrèk' },
+  'interview.confirm.change': { fr: 'Modifier', en: 'Change it', es: 'Cambiarlo', ht: 'Chanje li' },
+  'interview.done.heading': { fr: 'Vos réponses sont prêtes.', en: 'Your answers are ready.', es: 'Sus respuestas están listas.', ht: 'Repons ou yo pare.' },
+  'interview.done.body': { fr: 'Merci de nous avoir partagé votre histoire. Vous pouvez maintenant transmettre votre dossier.', en: 'Thank you for sharing your story. You can now send your file.', es: 'Gracias por compartir su historia. Ahora puede enviar su expediente.', ht: 'Mèsi pou pataje istwa ou. Ou ka voye dosye ou kounye a.' },
+  'interview.done.submit': { fr: 'Continuer', en: 'Continue', es: 'Continuar', ht: 'Kontinye' },
+
+  // ── Q1: Sex ──
+  'q1.prompt': { fr: 'Pour commencer — comment vous identifiez-vous ?', en: 'To start — how do you identify?', es: 'Para comenzar — ¿cómo se identifica?', ht: 'Pou kòmanse — kijan ou idantifye tèt ou?' },
+  'q1.man': { fr: 'Homme', en: 'Man', es: 'Hombre', ht: 'Gason' },
+  'q1.woman': { fr: 'Femme', en: 'Woman', es: 'Mujer', ht: 'Fanm' },
+  'q1.nonbinary': { fr: 'Non-binaire', en: 'Non-binary', es: 'No binario', ht: 'Non-binè' },
+  'q1.notsay': { fr: 'Préfère ne pas répondre', en: 'Prefer not to say', es: 'Prefiero no decirlo', ht: 'Prefere pa di' },
+
+  // ── Q2: Age group ──
+  'q2.prompt': { fr: 'Quel est votre groupe d\'âge ?', en: 'Which age group are you in?', es: '¿En qué grupo de edad está?', ht: 'Ki gwoup laj ou ye?' },
+
+  // ── Q3: Country ──
+  'q3.prompt': { fr: 'De quel pays venez-vous ?', en: 'What country are you from?', es: '¿De qué país viene?', ht: 'Ki peyi ou soti?' },
+  'q3.search': { fr: 'Chercher un pays…', en: 'Search for a country…', es: 'Buscar un país…', ht: 'Chèche yon peyi…' },
+
+  // ── Q4: Persecution ground ──
+  'q4.prompt': { fr: 'Pourquoi craignez-vous de retourner dans votre pays ?', en: 'Why are you afraid to return to your country?', es: '¿Por qué teme regresar a su país?', ht: 'Poukisa ou pè retounen nan peyi ou?' },
+  'q4.race': { fr: 'Race ou ethnie', en: 'Race or ethnicity', es: 'Raza o etnia', ht: 'Ras oswa etni' },
+  'q4.religion': { fr: 'Religion', en: 'Religion', es: 'Religión', ht: 'Relijyon' },
+  'q4.nationality': { fr: 'Nationalité', en: 'Nationality', es: 'Nacionalidad', ht: 'Nasyonalite' },
+  'q4.political': { fr: 'Opinion politique', en: 'Political opinion', es: 'Opinión política', ht: 'Opinyon politik' },
+  'q4.psg': { fr: 'Appartenance à un groupe social', en: 'Membership in a social group', es: 'Pertenencia a un grupo social', ht: 'Manm nan yon gwoup sosyal' },
+
+  // ── Q5: Narrative ──
+  'q5.prompt': { fr: 'Racontez-nous ce qui s\'est passé. Prenez votre temps.', en: 'Tell us what happened. Take your time.', es: 'Cuéntenos qué pasó. Tómese su tiempo.', ht: 'Rakonte nou sa ki te pase. Pran tan ou.' },
+  'q5.placeholder': { fr: 'Vous pouvez écrire ici, ou utiliser le microphone pour parler…', en: 'You can write here, or use the microphone to speak…', es: 'Puede escribir aquí, o usar el micrófono para hablar…', ht: 'Ou ka ekri isit la, oswa itilize mikwofòn pou pale…' },
+  'q5.mic': { fr: 'Appuyer pour parler', en: 'Tap to speak', es: 'Toque para hablar', ht: 'Touche pou pale' },
+
+  // ── Q6: Dates ──
+  'q6.prompt': { fr: 'Quelques dates importantes — faites de votre mieux.', en: 'A few important dates — do your best.', es: 'Algunas fechas importantes — haga lo que pueda.', ht: 'Kèk dat enpòtan — fè sa ou kapab.' },
+  'q6.incidents': { fr: 'Quand les incidents ont-ils eu lieu ?', en: 'When did the incidents happen?', es: '¿Cuándo ocurrieron los incidentes?', ht: 'Ki lè ensidan yo te pase?' },
+  'q6.left': { fr: 'Quand avez-vous quitté votre pays ?', en: 'When did you leave your country?', es: '¿Cuándo salió de su país?', ht: 'Ki lè ou te kite peyi ou?' },
+  'q6.arrived': { fr: 'Quand êtes-vous arrivé(e) au Canada ?', en: 'When did you arrive in Canada?', es: '¿Cuándo llegó a Canadá?', ht: 'Ki lè ou te rive Kanada?' },
+
+  // ── Q7: State protection ──
+  'q7.prompt': { fr: 'Avez-vous demandé de l\'aide aux autorités de votre pays ?', en: 'Did you ask for help from authorities in your country?', es: '¿Pidió ayuda a las autoridades de su país?', ht: 'Èske ou te mande otorite nan peyi ou pou èd?' },
+  'q7.yes': { fr: 'Oui', en: 'Yes', es: 'Sí', ht: 'Wi' },
+  'q7.no': { fr: 'Non', en: 'No', es: 'No', ht: 'Non' },
+  'q7.tried': { fr: 'J\'ai essayé mais ils n\'ont pas aidé', en: 'I tried but they didn\'t help', es: 'Lo intenté pero no me ayudaron', ht: 'Mwen te eseye men yo pa t ede' },
+  'q7.detail': { fr: 'Pouvez-vous expliquer pourquoi vous n\'avez pas pu obtenir d\'aide ?', en: 'Can you explain why you couldn\'t get help?', es: '¿Puede explicar por qué no pudo obtener ayuda?', ht: 'Èske ou ka eksplike poukisa ou pa t kapab jwenn èd?' },
+
+  // ── Q8: IFA ──
+  'q8.prompt': { fr: 'Y a-t-il une région sûre dans votre pays où vous pourriez vivre ?', en: 'Is there a safe region in your country where you could live?', es: '¿Hay una región segura en su país donde podría vivir?', ht: 'Èske gen yon rejyon ki an sekirite nan peyi ou kote ou ta ka viv?' },
+  'q8.yes': { fr: 'Oui', en: 'Yes', es: 'Sí', ht: 'Wi' },
+  'q8.no': { fr: 'Non', en: 'No', es: 'No', ht: 'Non' },
+  'q8.unknown': { fr: 'Je ne sais pas', en: 'I don\'t know', es: 'No lo sé', ht: 'Mwen pa konnen' },
+  'q8.detail': { fr: 'Pouvez-vous expliquer pourquoi vous ne pouvez pas déménager ?', en: 'Can you explain why you can\'t relocate?', es: '¿Puede explicar por qué no puede reubicarse?', ht: 'Èske ou ka eksplike poukisa ou pa ka deplase?' },
+
+  // ── Q9: Province + duration ──
+  'q9.prompt': { fr: 'Où vivez-vous au Canada et depuis combien de temps ?', en: 'Where in Canada do you live and for how long?', es: '¿Dónde vive en Canadá y desde cuándo?', ht: 'Ki kote ou rete nan Kanada ak depi konbyen tan?' },
+  'q9.province': { fr: 'Province ou territoire', en: 'Province or territory', es: 'Provincia o territorio', ht: 'Pwovens oswa teritwa' },
+  'q9.duration': { fr: 'Depuis combien de temps ? (ex : 6 mois, 2 ans)', en: 'For how long? (e.g. 6 months, 2 years)', es: '¿Desde cuándo? (ej.: 6 meses, 2 años)', ht: 'Depi konbyen tan? (ex: 6 mwa, 2 an)' },
+  // PIN display screen
+  'pin.heading': {
+    fr: 'Votre numéro de dossier',
+    en: 'Your file number',
+    es: 'Su número de expediente',
+    ht: 'Nimewo dosye ou',
+  },
+  'pin.instruction': {
+    fr: 'Notez ce numéro. La clinique utilisera ce code pour retrouver votre dossier.',
+    en: 'Write this down. The clinic will use this number to find your file.',
+    es: 'Anote este número. La clínica usará este código para encontrar su expediente.',
+    ht: 'Ekri sa a. Klinik la ap itilize nimewo sa a pou jwenn dosye ou.',
+  },
+  'pin.cta': {
+    fr: 'Je l\'ai noté',
+    en: 'I\'ve written it down',
+    es: 'Lo he anotado',
+    ht: 'Mwen te ekri li',
+  },
+
   // Landing — language bar
   'lang.fr': { fr: 'Français', en: 'Français', es: 'Français', ht: 'Français' },
   'lang.en': { fr: 'English', en: 'English', es: 'English', ht: 'English' },
@@ -192,6 +274,7 @@ export function AppProvider({ children }) {
   const [language, setLanguage] = useState('fr')
   const [role, setRole] = useState(null)
   const [sessionPin, setSessionPin] = useState(null)
+  const [interviewAnswers, setInterviewAnswers] = useState({})
 
   const t = useCallback(
     (key) => {
@@ -204,7 +287,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider
-      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, t }}
+      value={{ language, setLanguage, role, setRole, sessionPin, setSessionPin, interviewAnswers, setInterviewAnswers, t }}
     >
       {children}
     </AppContext.Provider>

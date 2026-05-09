@@ -74,9 +74,7 @@ export default function SeekerWelcome() {
       {/* TODO: Phase 1 interview questions */}
 
       <button
-        onClick={() => {
-          /* TODO: navigate to first interview question */
-        }}
+        onClick={() => navigate('/seeker/interview/1')}
         aria-label={t('seeker.welcome.start')}
         style={{
           width: '100%',

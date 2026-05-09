@@ -1,13 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import styles from './Landing.module.css'
-
-const languages = [
-  { code: 'fr', flag: '🇫🇷', label: 'Français' },
-  { code: 'en', flag: '🇨🇦', label: 'English' },
-  { code: 'es', flag: '🇪🇸', label: 'Español' },
-  { code: 'ht', flag: '🇭🇹', label: 'Kreyòl' },
-]
 
 function HouseIcon() {
   return (
@@ -30,12 +24,14 @@ function BriefcaseIcon() {
 }
 
 export default function Landing() {
-  const { language, setLanguage, setRole, t } = useApp()
+  const { setRole, setSessionPin, t } = useApp()
   const navigate = useNavigate()
 
   const handleSeeker = () => {
+    const pin = String(Math.floor(100000 + Math.random() * 900000))
+    setSessionPin(pin)
     setRole('seeker')
-    navigate('/seeker')
+    navigate('/seeker/pin')
   }
 
   const handleClinic = () => {
@@ -45,28 +41,7 @@ export default function Landing() {
 
   return (
     <div className={styles.container}>
-      {/* Language selector */}
-      <nav className={styles.langBar} aria-label="Language selection">
-        {languages.map((lang) => (
-          <button
-            key={lang.code}
-            className={`${styles.langBtn} ${language === lang.code ? styles.langBtnActive : ''}`}
-            onClick={() => setLanguage(lang.code)}
-            aria-pressed={language === lang.code}
-            aria-label={`${lang.label}`}
-          >
-            <span aria-hidden="true">{lang.flag}</span>
-            {lang.label}
-          </button>
-        ))}
-        <button
-          className={styles.langBtn}
-          onClick={() => alert('More languages coming soon')}
-          aria-label="More languages"
-        >
-          🌐 More...
-        </button>
-      </nav>
+      <LanguageSwitcher />
 
       {/* App identity */}
       <div className={styles.identity}>
