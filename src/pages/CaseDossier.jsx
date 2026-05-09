@@ -12,80 +12,70 @@ export default function CaseDossier() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div style={{ minHeight: 'calc(100vh - 52px)', background: 'var(--navy)', padding: '2rem 1.5rem' }}>
+    <div style={{ minHeight: 'calc(100vh - 56px)', padding: '2rem 1.5rem' }}>
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
-        {/* Back link */}
         <button
           onClick={() => navigate('/clinic/dashboard')}
           style={{
             background: 'none',
             border: 'none',
-            color: 'var(--text-muted)',
-            fontSize: '0.78rem',
+            color: 'var(--color-muted)',
+            fontSize: '0.82rem',
             cursor: 'pointer',
             padding: 0,
             marginBottom: '1.5rem',
-            letterSpacing: '0.02em',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.4rem',
+            gap: '0.35rem',
           }}
         >
           ← Tableau de bord · Dashboard
         </button>
 
-        {/* Header */}
         <div
           style={{
-            background: 'var(--navy-mid)',
-            border: '1px solid var(--border)',
-            borderRadius: 6,
-            padding: '1.25rem 1.5rem',
-            marginBottom: '1.5rem',
+            background: 'var(--color-card)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-card)',
+            padding: '1.5rem',
+            marginBottom: '1rem',
           }}
         >
           <p
             style={{
               fontSize: '0.65rem',
               fontWeight: 600,
-              letterSpacing: '0.1em',
-              color: 'var(--text-muted)',
+              letterSpacing: '0.08em',
+              color: 'var(--color-muted)',
               textTransform: 'uppercase',
               marginBottom: '0.4rem',
             }}
           >
-            DOSSIER · CASE FILE
+            Dossier · Case file
           </p>
           <p
             style={{
               fontFamily: 'monospace',
               fontSize: '1.4rem',
               fontWeight: 700,
-              color: 'var(--off-white)',
-              letterSpacing: '0.06em',
+              color: 'var(--color-text)',
+              letterSpacing: '0.04em',
             }}
           >
             #{id}
           </p>
         </div>
 
-        {/* Stub */}
         <div
           style={{
-            background: 'var(--navy-mid)',
-            border: '1px solid var(--border)',
-            borderRadius: 6,
+            background: 'var(--color-card)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-card)',
             padding: '3rem 1.5rem',
             textAlign: 'center',
           }}
         >
-          <p
-            style={{
-              fontSize: '0.9rem',
-              color: 'var(--text-muted)',
-              fontStyle: 'italic',
-            }}
-          >
+          <p style={{ fontSize: '0.9rem', color: 'var(--color-muted)', fontStyle: 'italic' }}>
             Dossier complet — à venir · Full dossier coming soon
           </p>
         </div>

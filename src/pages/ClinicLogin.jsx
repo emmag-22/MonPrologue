@@ -34,7 +34,7 @@ export default function ClinicLogin() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: 'calc(100vh - 52px)',
+        minHeight: 'calc(100vh - 56px)',
         padding: '2rem 1.5rem',
       }}
     >
@@ -42,115 +42,109 @@ export default function ClinicLogin() {
         onSubmit={handleSubmit}
         style={{
           width: '100%',
-          maxWidth: 400,
-          background: 'var(--navy-mid)',
-          border: '1px solid var(--border)',
-          borderRadius: 8,
-          overflow: 'hidden',
+          maxWidth: 440,
+          background: 'var(--color-card)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-card)',
+          padding: '2.5rem 2rem',
         }}
       >
-        {/* Form header */}
-        <div
+        <h1
           style={{
-            padding: '1.25rem 1.5rem',
-            borderBottom: '1px solid var(--border)',
+            fontFamily: 'var(--font-display)',
+            fontSize: '1.4rem',
+            fontWeight: 600,
+            color: 'var(--color-text)',
+            marginBottom: '0.25rem',
+            lineHeight: 1.3,
           }}
         >
+          Accès clinique
+        </h1>
+        <p
+          style={{
+            fontSize: '0.8rem',
+            color: 'var(--color-muted)',
+            marginBottom: '2rem',
+          }}
+        >
+          Legal clinic access
+        </p>
+
+        <FieldGroup
+          label="Numéro d'établissement"
+          sublabel="Establishment number"
+          value={estab}
+          onChange={setEstab}
+          placeholder="QC-XXXX"
+          autoComplete="organization"
+        />
+        <FieldGroup
+          label="Numéro d'employé"
+          sublabel="Employee number"
+          value={employee}
+          onChange={setEmployee}
+          placeholder="LP-XXXX"
+          autoComplete="username"
+        />
+        <FieldGroup
+          label="Mot de passe"
+          sublabel="Password"
+          value={password}
+          onChange={setPassword}
+          type="password"
+          autoComplete="current-password"
+        />
+
+        {error && (
           <p
             style={{
-              fontSize: '0.65rem',
-              fontWeight: 600,
-              letterSpacing: '0.1em',
-              color: 'var(--text-muted)',
-              textTransform: 'uppercase',
-              marginBottom: '0.15rem',
+              fontSize: '0.8rem',
+              color: 'var(--color-danger)',
+              marginBottom: '1rem',
+              padding: '0.6rem 0.75rem',
+              background: 'rgba(192,57,43,0.06)',
+              border: '1px solid rgba(192,57,43,0.2)',
+              borderRadius: 'var(--radius-btn)',
             }}
           >
-            CLINIQUE JURIDIQUE · LEGAL CLINIC
+            {error}
           </p>
-          <p
-            style={{
-              fontSize: '1rem',
-              fontWeight: 600,
-              color: 'var(--off-white)',
-              fontFamily: 'var(--font-display)',
-            }}
-          >
-            Accès au tableau de bord
-          </p>
-          <p
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--text-muted)',
-              marginTop: '0.1rem',
-            }}
-          >
-            Dashboard access
-          </p>
-        </div>
+        )}
 
-        {/* Fields */}
-        <div style={{ padding: '1.5rem' }}>
-          <FieldGroup
-            label="Numéro d'établissement"
-            sublabel="Establishment number"
-            value={estab}
-            onChange={setEstab}
-            placeholder="QC-XXXX"
-            autoComplete="organization"
-          />
-          <FieldGroup
-            label="Numéro d'employé"
-            sublabel="Employee number"
-            value={employee}
-            onChange={setEmployee}
-            placeholder="LP-XXXX"
-            autoComplete="username"
-          />
-          <FieldGroup
-            label="Mot de passe"
-            sublabel="Password"
-            value={password}
-            onChange={setPassword}
-            type="password"
-            autoComplete="current-password"
-          />
+        <button
+          type="submit"
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            background: 'var(--color-primary)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 'var(--radius-btn)',
+            fontSize: '1rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            minHeight: 52,
+            marginBottom: '1.25rem',
+          }}
+        >
+          Se connecter · Log in
+        </button>
 
-          {error && (
-            <p
-              style={{
-                fontSize: '0.78rem',
-                color: 'var(--urgent-red)',
-                marginBottom: '1rem',
-                padding: '0.5rem 0.75rem',
-                background: 'rgba(217,79,61,0.08)',
-                border: '1px solid rgba(217,79,61,0.25)',
-                borderRadius: 4,
-              }}
-            >
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              padding: '0.7rem',
-              background: 'var(--urgent-green)',
-              color: '#071f14',
-              border: 'none',
-              borderRadius: 4,
-              fontSize: '0.9rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              letterSpacing: '0.02em',
-              minHeight: 44,
-            }}
-          >
-            Se connecter · Log in
-          </button>
-        </div>
+        <p
+          style={{
+            fontSize: '0.78rem',
+            color: 'var(--color-muted)',
+            textAlign: 'center',
+            lineHeight: 1.5,
+          }}
+        >
+          Vous avez reçu vos identifiants de votre organisation.
+          <br />
+          <span style={{ fontSize: '0.72rem' }}>
+            You received your credentials from your organisation.
+          </span>
+        </p>
       </form>
     </div>
   )
@@ -158,12 +152,26 @@ export default function ClinicLogin() {
 
 function FieldGroup({ label, sublabel, value, onChange, type = 'text', placeholder = '', autoComplete }) {
   return (
-    <div style={{ marginBottom: '1rem' }}>
-      <label style={{ display: 'block', marginBottom: '0.35rem' }}>
-        <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--off-white)' }}>
+    <div style={{ marginBottom: '1.25rem' }}>
+      <label style={{ display: 'block', marginBottom: '0.4rem' }}>
+        <span
+          style={{
+            display: 'block',
+            fontSize: '0.85rem',
+            fontWeight: 500,
+            color: 'var(--color-text)',
+          }}
+        >
           {label}
         </span>
-        <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.05rem' }}>
+        <span
+          style={{
+            display: 'block',
+            fontSize: '0.72rem',
+            color: 'var(--color-muted)',
+            marginTop: '0.05rem',
+          }}
+        >
           {sublabel}
         </span>
       </label>
@@ -176,18 +184,18 @@ function FieldGroup({ label, sublabel, value, onChange, type = 'text', placehold
         required
         style={{
           width: '100%',
-          padding: '0.55rem 0.75rem',
-          background: 'var(--navy)',
-          border: '1px solid var(--border)',
-          borderRadius: 4,
-          fontSize: '0.9rem',
-          color: 'var(--off-white)',
-          fontFamily: 'monospace',
-          letterSpacing: '0.03em',
+          padding: '0.65rem 0.75rem',
+          background: 'var(--color-bg)',
+          border: '1.5px solid var(--color-border)',
+          borderRadius: 'var(--radius-btn)',
+          fontSize: '0.95rem',
+          color: 'var(--color-text)',
+          fontFamily: 'var(--font-ui)',
           outline: 'none',
+          transition: 'border-color 0.15s',
         }}
-        onFocus={(e) => (e.target.style.borderColor = 'var(--text-muted)')}
-        onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+        onFocus={(e) => (e.target.style.borderColor = 'var(--color-primary)')}
+        onBlur={(e) => (e.target.style.borderColor = 'var(--color-border)')}
       />
     </div>
   )

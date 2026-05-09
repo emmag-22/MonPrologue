@@ -4,17 +4,17 @@ import { useApp } from '../context/AppContext'
 import { getPriority } from '../lib/mockCases'
 
 const PRIORITY_COLOR = {
-  red:    'var(--urgent-red)',
-  orange: 'var(--urgent-orange)',
-  yellow: 'var(--urgent-yellow)',
-  green:  'var(--urgent-green)',
+  red:    '#d94f3d',
+  orange: '#e8a020',
+  yellow: '#d4b84a',
+  green:  '#2eb87e',
 }
 
 const STRENGTH_STYLE = {
-  'Strong':          { color: '#2eb87e', background: '#071f14' },
-  'Moderate-Strong': { color: '#1a9b8a', background: '#071917' },
-  'Moderate':        { color: '#e8a020', background: '#1f1400' },
-  'Weak':            { color: '#d94f3d', background: '#1a0806' },
+  'Strong':          { color: '#0D5C3A', background: 'rgba(13,92,58,0.08)' },
+  'Moderate-Strong': { color: '#1a9b8a', background: 'rgba(26,155,138,0.1)' },
+  'Moderate':        { color: '#8a6200', background: 'rgba(232,160,32,0.1)' },
+  'Weak':            { color: '#C0392B', background: 'rgba(192,57,43,0.08)' },
 }
 
 const STRENGTH_LABEL = {
@@ -44,13 +44,13 @@ function formatDate(iso) {
 }
 
 function CaseCard({ caseObj, onClick }) {
-  const priority   = getPriority(caseObj)
-  const isMedical  = caseObj.legalCategory === 'Section 97 — Medical Ineligible'
-  const isRedTag   = RED_FLAG_TAGS.has(caseObj.detailTag)
-  const daysSince  = Math.round((Date.now() - new Date(caseObj.filedDate).getTime()) / 86400000)
+  const priority  = getPriority(caseObj)
+  const isMedical = caseObj.legalCategory === 'Section 97 — Medical Ineligible'
+  const isRedTag  = RED_FLAG_TAGS.has(caseObj.detailTag)
+  const daysSince = Math.round((Date.now() - new Date(caseObj.filedDate).getTime()) / 86400000)
 
   const strengthStyle = isMedical
-    ? { color: '#8a9bb0', background: '#1a2e42' }
+    ? { color: 'var(--color-muted)', background: 'rgba(122,122,114,0.08)' }
     : STRENGTH_STYLE[caseObj.claimStrength] ?? STRENGTH_STYLE['Moderate']
 
   return (
@@ -60,15 +60,15 @@ function CaseCard({ caseObj, onClick }) {
         display: 'flex',
         width: '100%',
         textAlign: 'left',
-        background: 'var(--navy-mid)',
-        border: '1px solid var(--border)',
-        borderRadius: 6,
+        background: 'var(--color-card)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-card)',
         overflow: 'hidden',
         cursor: 'pointer',
-        transition: 'border-color 0.15s',
+        transition: 'box-shadow 0.15s',
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--navy-light)')}
-      onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)')}
+      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
     >
       {/* Urgency band */}
       <div style={{ width: 4, background: PRIORITY_COLOR[priority], flexShrink: 0 }} />
@@ -77,7 +77,7 @@ function CaseCard({ caseObj, onClick }) {
       <div
         style={{
           flex: 1,
-          padding: '0.75rem 1rem',
+          padding: '0.875rem 1rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '0.45rem',
@@ -90,7 +90,7 @@ function CaseCard({ caseObj, onClick }) {
               fontFamily: 'monospace',
               fontSize: '0.82rem',
               fontWeight: 700,
-              color: 'var(--off-white)',
+              color: 'var(--color-text)',
               letterSpacing: '0.04em',
             }}
           >
@@ -101,7 +101,7 @@ function CaseCard({ caseObj, onClick }) {
               fontSize: '0.65rem',
               fontWeight: 700,
               letterSpacing: '0.05em',
-              padding: '0.2rem 0.55rem',
+              padding: '0.2rem 0.6rem',
               borderRadius: 999,
               ...strengthStyle,
             }}
@@ -111,23 +111,17 @@ function CaseCard({ caseObj, onClick }) {
         </div>
 
         {/* Row 2: flag + country */}
-        <div
-          style={{
-            fontSize: '0.9rem',
-            color: 'var(--off-white)',
-            fontWeight: 500,
-          }}
-        >
+        <div style={{ fontSize: '0.9rem', color: 'var(--color-text)', fontWeight: 500 }}>
           {caseObj.countryFlag}&nbsp;&nbsp;{caseObj.country}
         </div>
 
         {/* Row 3: legal category */}
         <div
           style={{
-            fontSize: '0.72rem',
-            color: 'var(--text-muted)',
+            fontSize: '0.75rem',
+            color: 'var(--color-muted)',
             fontFamily: 'monospace',
-            letterSpacing: '0.02em',
+            letterSpacing: '0.01em',
           }}
         >
           {caseObj.legalCategory}
@@ -137,24 +131,27 @@ function CaseCard({ caseObj, onClick }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span
             style={{
-              fontSize: '0.68rem',
+              fontSize: '0.7rem',
               fontWeight: 500,
-              padding: '0.2rem 0.55rem',
+              padding: '0.2rem 0.6rem',
               borderRadius: 999,
-              background: isRedTag ? 'rgba(217,79,61,0.12)' : 'rgba(138,155,176,0.1)',
-              color: isRedTag ? 'var(--urgent-red)' : 'var(--text-muted)',
-              border: isRedTag ? '1px solid rgba(217,79,61,0.3)' : '1px solid transparent',
-              boxShadow: isRedTag ? '0 0 8px rgba(217,79,61,0.25)' : 'none',
+              background: isRedTag
+                ? 'rgba(192,57,43,0.07)'
+                : 'rgba(122,122,114,0.08)',
+              color: isRedTag ? 'var(--color-danger)' : 'var(--color-muted)',
+              border: isRedTag
+                ? '1px solid rgba(192,57,43,0.2)'
+                : '1px solid transparent',
+              boxShadow: isRedTag ? '0 0 6px rgba(192,57,43,0.15)' : 'none',
             }}
           >
             {caseObj.detailTag}
           </span>
           <span
             style={{
-              fontSize: '0.72rem',
-              color: 'var(--text-muted)',
+              fontSize: '0.73rem',
+              color: 'var(--color-muted)',
               fontFamily: 'monospace',
-              letterSpacing: '0.02em',
             }}
           >
             {daysSince}j · {formatDate(caseObj.filedDate)}
@@ -180,13 +177,13 @@ export default function ClinicDashboard() {
   const visible = cases.filter((c) => c.status === activeTab)
 
   return (
-    <div style={{ minHeight: 'calc(100vh - 52px)', background: 'var(--navy)' }}>
+    <div style={{ minHeight: 'calc(100vh - 56px)', padding: '0 0 3rem' }}>
       {/* Tab bar */}
       <div
         style={{
           display: 'flex',
-          borderBottom: '1px solid var(--border)',
-          background: 'var(--navy-mid)',
+          borderBottom: '1px solid var(--color-border)',
+          background: 'var(--color-card)',
           padding: '0 1.5rem',
         }}
       >
@@ -200,10 +197,12 @@ export default function ClinicDashboard() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                padding: '0.75rem 1.25rem 0.65rem',
+                padding: '0.8rem 1.25rem 0.65rem',
                 background: 'none',
                 border: 'none',
-                borderBottom: active ? '2px solid var(--off-white)' : '2px solid transparent',
+                borderBottom: active
+                  ? '2px solid var(--color-primary)'
+                  : '2px solid transparent',
                 cursor: 'pointer',
                 marginBottom: '-1px',
                 gap: '0.05rem',
@@ -214,10 +213,9 @@ export default function ClinicDashboard() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.45rem',
-                  fontSize: '0.82rem',
+                  fontSize: '0.85rem',
                   fontWeight: active ? 600 : 400,
-                  color: active ? 'var(--off-white)' : 'var(--text-muted)',
-                  letterSpacing: '0.01em',
+                  color: active ? 'var(--color-primary)' : 'var(--color-muted)',
                 }}
               >
                 {tab.fr}
@@ -225,16 +223,18 @@ export default function ClinicDashboard() {
                   style={{
                     fontSize: '0.65rem',
                     fontWeight: 600,
-                    padding: '0.05rem 0.4rem',
+                    padding: '0.05rem 0.45rem',
                     borderRadius: 999,
-                    background: active ? 'var(--navy-light)' : 'rgba(138,155,176,0.1)',
-                    color: active ? 'var(--off-white)' : 'var(--text-muted)',
+                    background: active
+                      ? 'rgba(13,92,58,0.1)'
+                      : 'rgba(122,122,114,0.1)',
+                    color: active ? 'var(--color-primary)' : 'var(--color-muted)',
                   }}
                 >
                   {tabCounts[tab.key]}
                 </span>
               </span>
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.68rem', color: 'var(--color-muted)' }}>
                 {tab.en}
               </span>
             </button>
@@ -250,16 +250,17 @@ export default function ClinicDashboard() {
           padding: '1.25rem 1.5rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.6rem',
+          gap: '0.65rem',
         }}
       >
         {visible.length === 0 ? (
           <p
             style={{
               textAlign: 'center',
-              color: 'var(--text-muted)',
+              color: 'var(--color-muted)',
               fontSize: '0.85rem',
               marginTop: '3rem',
+              fontStyle: 'italic',
             }}
           >
             Aucun dossier · No cases

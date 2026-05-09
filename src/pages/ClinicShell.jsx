@@ -12,39 +12,37 @@ export default function ClinicShell() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--navy)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg)' }}>
       <nav
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 1.5rem',
-          height: 52,
-          background: 'var(--navy-mid)',
-          borderBottom: '1px solid var(--border)',
-          flexShrink: 0,
+          height: 56,
+          background: 'var(--color-card)',
+          borderBottom: '1px solid var(--color-border)',
         }}
       >
         <span
           style={{
             fontFamily: 'var(--font-display)',
             fontStyle: 'italic',
-            fontSize: '1.2rem',
-            fontWeight: 600,
-            color: 'var(--off-white)',
-            letterSpacing: '0.06em',
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: 'var(--color-primary)',
           }}
         >
-          REFUGE
+          Refuge
         </span>
 
         {clinicAuth && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span
               style={{
                 fontFamily: 'monospace',
                 fontSize: '0.78rem',
-                color: 'var(--text-muted)',
+                color: 'var(--color-muted)',
                 letterSpacing: '0.04em',
               }}
             >
@@ -53,19 +51,18 @@ export default function ClinicShell() {
             <button
               onClick={handleLogout}
               style={{
-                padding: '0.35rem 0.85rem',
-                border: '1px solid var(--border)',
-                borderRadius: 4,
-                fontSize: '0.78rem',
+                padding: '0.4rem 0.9rem',
+                border: '1.5px solid var(--color-border)',
+                borderRadius: 'var(--radius-btn)',
+                fontSize: '0.8rem',
                 fontWeight: 500,
-                color: 'var(--text-muted)',
+                color: 'var(--color-text)',
                 background: 'transparent',
                 cursor: 'pointer',
-                letterSpacing: '0.02em',
-                minHeight: 30,
+                minHeight: 34,
               }}
             >
-              Se déconnecter · Log out
+              Se déconnecter
             </button>
           </div>
         )}
