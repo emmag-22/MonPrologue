@@ -4,11 +4,16 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node --env-file=.env server.js & vite",
+    "dev:frontend": "vite",
+    "dev:server": "node --env-file=.env server.js",
     "build": "vite build",
+    "start": "node --env-file=.env server.js",
     "preview": "vite preview"
   },
   "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"
