@@ -22,6 +22,8 @@
   --font-display: 'Fraunces', serif;
   --radius-card: 12px;
   --radius-btn: 8px;
+  --color-pink: #E8A0BF;
+  --color-pink-soft: rgba(232, 160, 191, 0.12);
 
   /* Clinic palette */
   --navy:          #0d1b2a;

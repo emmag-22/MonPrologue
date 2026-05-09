@@ -18,7 +18,7 @@ const outcomeColor = (o) => o === 'Accepted' ? '#2eb87e' : o === 'Rejected' ? '#
 
 export default function CaseDossier() {
   const { id } = useParams()
-  const { isAuthenticated, cases, interviewAnswers, interviewPhase1, interviewPhase2 } = useApp()
+  const { isAuthenticated, cases, interviewAnswers, interviewPhase1, interviewPhase2, t } = useApp()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -29,7 +29,6 @@ export default function CaseDossier() {
   const dossier = useMemo(() => getMockDossierForCase(caseObj), [caseObj])
   const cr = dossier.clinicReport
 
-  // Similar cases — loaded in parallel
   const [similarCases, setSimilarCases] = useState(null)
   useEffect(() => {
     if (!caseObj) return
@@ -42,21 +41,14 @@ export default function CaseDossier() {
     return () => { cancelled = true }
   }, [caseObj?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Build transcript for appendix — use mock answers if context is empty
   const transcript = useMemo(() => {
     const hasRealAnswers = interviewAnswers && Object.keys(interviewAnswers).length > 0
-    if (hasRealAnswers) {
-      return buildTranscript(interviewAnswers, interviewPhase1 || {}, interviewPhase2 || {})
-    }
+    if (hasRealAnswers) return buildTranscript(interviewAnswers, interviewPhase1 || {}, interviewPhase2 || {})
     const mock = getMockAnswersForCase(id)
     return buildTranscript(mock.p0 || {}, mock.p1 || {}, mock.p2 || {})
   }, [interviewAnswers, interviewPhase1, interviewPhase2, id])
 
-  // Highlight state for click-to-highlight
-  const [highlightId, setHighlightId] = useState(null)
-
   const handleFlagClick = useCallback((answerId) => {
-    setHighlightId(answerId)
     const el = document.getElementById(answerId)
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -65,9 +57,8 @@ export default function CaseDossier() {
     }
   }, [])
 
-  // Download transcript as .txt
   const handleDownloadTranscript = useCallback(() => {
-    let text = `MON PROLOGUE CASE TRANSCRIPT\nCase: ${cr.caseId || caseObj?.sessionId || id}\nDate: ${new Date().toISOString().split('T')[0]}\n`
+    let text = `MON PROLOGUE — CASE TRANSCRIPT\nCase: ${cr.caseId || caseObj?.sessionId || id}\nDate: ${new Date().toISOString().split('T')[0]}\n`
     for (const item of transcript) {
       if (typeof item === 'string') { text += item + '\n'; continue }
       text += `\nQ: ${item.q}\nA: ${item.a}\n`
@@ -80,7 +71,6 @@ export default function CaseDossier() {
     URL.revokeObjectURL(a.href)
   }, [transcript, cr.caseId, caseObj, id])
 
-  // Print as PDF
   const handlePrint = useCallback(() => {
     const prev = document.title
     document.title = `MonPrologue_Report_${cr.caseId || id}_${new Date().toISOString().split('T')[0]}`
@@ -92,8 +82,8 @@ export default function CaseDossier() {
     return (
       <div style={{ minHeight: 'calc(100vh - 56px)', padding: '2rem 1.5rem' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <button onClick={() => navigate('/clinic/dashboard')} style={backBtn}>← Dashboard</button>
-          <Card><p style={{ color: 'var(--color-muted)' }}>Case not found.</p></Card>
+          <button onClick={() => navigate('/clinic/dashboard')} style={backBtn}>{t('clinic.back')}</button>
+          <Card t={t}><p style={{ color: 'var(--color-muted)' }}>Case not found.</p></Card>
         </div>
       </div>
     )
@@ -105,18 +95,18 @@ export default function CaseDossier() {
     <div id="clinic-report" style={{ minHeight: 'calc(100vh - 56px)', padding: '1.5rem 1rem 3rem' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <button onClick={() => navigate('/clinic/dashboard')} style={backBtn}>← Tableau de bord</button>
+          <button onClick={() => navigate('/clinic/dashboard')} style={backBtn}>{t('clinic.back')}</button>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button onClick={handleDownloadTranscript} style={actionBtn}>↓ Transcript</button>
-            <button onClick={handlePrint} style={actionBtn}>⎙ Download PDF</button>
+            <button onClick={handleDownloadTranscript} style={actionBtn}>{t('clinic.download.transcript')}</button>
+            <button onClick={handlePrint} style={actionBtn}>{t('clinic.download.pdf')}</button>
           </div>
         </div>
 
         {/* ═══ SECTION 1 — CASE BRIEF ═══ */}
-        <Card style={{ pageBreakAfter: 'avoid' }}>
+        <Card t={t} style={{ pageBreakAfter: 'avoid' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
             <div>
-              <p style={labelSm}>CASE BRIEF</p>
+              <p style={labelSm}>{t('clinic.case.brief')}</p>
               <p style={{ fontFamily: 'monospace', fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)', letterSpacing: '0.04em' }}>
                 {cr.caseId || caseObj.sessionId}
               </p>
@@ -131,18 +121,15 @@ export default function CaseDossier() {
             </div>
           </div>
 
-          {/* Quick stats */}
           <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-            <Stat label="Country" value={`${caseObj.countryFlag} ${caseObj.country}`} />
-            <Stat label="Ground" value={dossier.conventionGround.primary?.replace(/_/g, ' ')} />
-            <Stat label="Time in Canada" value={caseObj.filedDate} />
-            <Stat label="Category" value={caseObj.legalCategory} />
+            <Stat label={t('clinic.dashboard.category')} value={`${caseObj.countryFlag} ${caseObj.country}`} />
+            <Stat label={t('clinic.case.ground')} value={dossier.conventionGround.primary?.replace(/_/g, ' ')} />
+            <Stat label={t('clinic.dashboard.status')} value={caseObj.filedDate} />
           </div>
 
-          {/* Deadline tracker */}
           {cr.deadlineFlags?.length > 0 && (
             <div>
-              <p style={{ ...labelSm, marginBottom: '0.4rem' }}>DEADLINE TRACKER</p>
+              <p style={{ ...labelSm, marginBottom: '0.4rem' }}>{t('clinic.case.deadlines')}</p>
               <div style={{ display: 'grid', gap: '0.35rem' }}>
                 {cr.deadlineFlags.map((d, i) => {
                   const c = deadlineColor(d.daysRemaining)
@@ -152,7 +139,7 @@ export default function CaseDossier() {
                       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)', fontFamily: 'monospace' }}>{d.dueDate}</span>
                         <span style={{ fontSize: '0.68rem', fontWeight: 700, color: c }}>
-                          {d.daysRemaining > 0 ? `${d.daysRemaining}d left` : `${Math.abs(d.daysRemaining)}d overdue`}
+                          {d.daysRemaining > 0 ? `${d.daysRemaining}d` : `${Math.abs(d.daysRemaining)}d`}
                         </span>
                       </div>
                     </div>
@@ -165,18 +152,18 @@ export default function CaseDossier() {
 
         {/* ═══ SECTION 2 — NARRATIVE + TIMELINE ═══ */}
         <div className="print-break" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
-          <Card title="Narrative Summary">
+          <Card t={t} title={t('clinic.case.narrative')}>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text)', lineHeight: 1.7, opacity: 0.9 }}>
-              {cr.narrativeSummary || cr.narrativeAssessment || 'No narrative summary available.'}
+              {cr.narrativeSummary || cr.narrativeAssessment || ''}
             </p>
           </Card>
-          <Card title="Event Timeline">
+          <Card t={t} title={t('clinic.case.timeline')}>
             <TimelineComponent events={cr.timelineEvents || []} />
           </Card>
         </div>
 
         {/* ═══ SECTION 3 — GEOPOLITICAL CONTEXT ═══ */}
-        <Card title="Geopolitical Context" className="print-break">
+        <Card t={t} title={t('clinic.case.geo')} className="print-break">
           {cr.geopoliticalContext ? (
             <>
               <p style={{ fontSize: '0.85rem', color: 'var(--color-text)', lineHeight: 1.7, opacity: 0.9, marginBottom: '1rem', whiteSpace: 'pre-line' }}>
@@ -184,7 +171,7 @@ export default function CaseDossier() {
               </p>
               {cr.geopoliticalContext.sources?.length > 0 && (
                 <>
-                  <p style={{ ...labelSm, marginBottom: '0.5rem' }}>SOURCES</p>
+                  <p style={{ ...labelSm, marginBottom: '0.5rem' }}>{t('clinic.case.geo.sources')}</p>
                   <div style={{ display: 'grid', gap: '0.4rem' }}>
                     {cr.geopoliticalContext.sources.map((s, i) => {
                       const isRecent = s.year >= new Date().getFullYear()
@@ -206,14 +193,13 @@ export default function CaseDossier() {
               )}
             </>
           ) : (
-            <p style={{ fontSize: '0.82rem', color: 'var(--color-muted)', fontStyle: 'italic' }}>Geopolitical context not available.</p>
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-muted)', fontStyle: 'italic' }}>{t('clinic.case.geo.empty')}</p>
           )}
         </Card>
 
         {/* ═══ SECTION 4 — RED FLAGS ═══ */}
-        <Card title="Red Flags" className="print-break">
-          {/* 4a — Deadlines (already shown in brief, compact repeat) */}
-          <p style={{ ...labelSm, marginBottom: '0.4rem' }}>4A — DEADLINE ALERTS</p>
+        <Card t={t} title={t('clinic.case.flags')} className="print-break">
+          <p style={{ ...labelSm, marginBottom: '0.4rem' }}>{t('clinic.case.flags.deadlines')}</p>
           <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
             {(cr.deadlineFlags || []).filter(d => d.daysRemaining < 30).map((d, i) => (
               <span key={i} style={{ fontSize: '0.68rem', fontWeight: 600, padding: '0.2rem 0.55rem', borderRadius: 999, color: deadlineColor(d.daysRemaining), background: `${deadlineColor(d.daysRemaining)}12`, border: `1px solid ${deadlineColor(d.daysRemaining)}30` }}>
@@ -221,12 +207,11 @@ export default function CaseDossier() {
               </span>
             ))}
             {(cr.deadlineFlags || []).filter(d => d.daysRemaining < 30).length === 0 && (
-              <span style={{ fontSize: '0.78rem', color: '#2eb87e' }}>No imminent deadlines.</span>
+              <span style={{ fontSize: '0.78rem', color: '#2eb87e' }}>{t('clinic.case.flags.none')}</span>
             )}
           </div>
 
-          {/* 4b — Legal exclusions */}
-          <p style={{ ...labelSm, marginBottom: '0.4rem' }}>4B — LEGAL EXCLUSION SCREENING</p>
+          <p style={{ ...labelSm, marginBottom: '0.4rem' }}>{t('clinic.case.flags.exclusions')}</p>
           <div style={{ display: 'grid', gap: '0.4rem', marginBottom: '1rem' }}>
             {(cr.legalExclusionFlags || []).map((f, i) => {
               const sc = severityColor[f.severity] || severityColor.LOW
@@ -242,14 +227,13 @@ export default function CaseDossier() {
             })}
           </div>
 
-          {/* 4c — Narrative inconsistencies */}
-          <p style={{ ...labelSm, marginBottom: '0.4rem' }}>4C — NARRATIVE FLAGS</p>
+          <p style={{ ...labelSm, marginBottom: '0.4rem' }}>{t('clinic.case.flags.narrative')}</p>
           <p style={{ fontSize: '0.68rem', color: 'var(--color-muted)', marginBottom: '0.5rem', fontStyle: 'italic' }}>
-            Click a flag to scroll to the relevant answer in the Appendix. Gaps may reflect trauma or translation.
+            {t('clinic.case.flags.narrative.hint')}
           </p>
           <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
             {(cr.narrativeFlags || []).map((f, i) => (
-              <button key={i} onClick={() => handleFlagClick(f.answerId)} style={{ fontSize: '0.72rem', fontWeight: 500, padding: '0.3rem 0.7rem', borderRadius: 999, background: '#e8a02015', color: '#e8a020', border: '1px solid #e8a02030', cursor: 'pointer' }}>
+              <button key={i} onClick={() => handleFlagClick(f.answerId)} style={{ fontSize: '0.72rem', fontWeight: 500, padding: '0.3rem 0.7rem', borderRadius: 999, background: 'var(--color-pink-soft)', color: '#c0607e', border: '1px solid rgba(232,160,191,0.3)', cursor: 'pointer' }}>
                 ⚠ {f.issue}
               </button>
             ))}
@@ -257,9 +241,9 @@ export default function CaseDossier() {
         </Card>
 
         {/* ═══ SECTION 5 — SIMILAR CASES ═══ */}
-        <Card title="Similar IRB Decisions" className="print-break">
+        <Card t={t} title={t('clinic.case.similar')} className="print-break">
           {!similarCases ? (
-            <p style={{ fontSize: '0.82rem', color: 'var(--color-muted)', fontStyle: 'italic' }}>Loading similar cases…</p>
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-muted)', fontStyle: 'italic' }}>{t('clinic.case.similar.loading')}</p>
           ) : similarCases.length > 0 ? (
             <>
               {similarCases.map((sc, i) => {
@@ -284,18 +268,18 @@ export default function CaseDossier() {
                 )
               })}
               <p style={{ fontSize: '0.68rem', color: 'var(--color-muted)', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                Illustrative case patterns. Click titles to search CanLII. Verify all citations before use in any legal proceeding.
+                {t('clinic.case.similar.note')}
               </p>
             </>
           ) : (
-            <p style={{ fontSize: '0.82rem', color: 'var(--color-muted)', fontStyle: 'italic' }}>No similar cases found.</p>
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-muted)', fontStyle: 'italic' }}>{t('clinic.case.similar.none')}</p>
           )}
         </Card>
 
-        {/* ═══ SECTION 6 — APPENDIX: RAW CONVERSATION ═══ */}
-        <Card title="Appendix — Full Conversation Transcript" className="print-break">
+        {/* ═══ SECTION 6 — APPENDIX ═══ */}
+        <Card t={t} title={t('clinic.case.appendix')} className="print-break">
           <div className="no-print" style={{ marginBottom: '0.75rem' }}>
-            <button onClick={handleDownloadTranscript} style={actionBtn}>↓ Download full transcript</button>
+            <button onClick={handleDownloadTranscript} style={actionBtn}>{t('clinic.download.transcript')}</button>
           </div>
           {transcript.map((item, i) => {
             if (typeof item === 'string') {
@@ -313,23 +297,20 @@ export default function CaseDossier() {
         {/* Disclaimer */}
         <div className="print-footer-text" style={{ padding: '1rem', borderTop: '1px solid var(--color-border)', marginTop: '0.5rem' }}>
           <p style={{ fontSize: '0.7rem', color: 'var(--color-muted)', lineHeight: 1.6, fontStyle: 'italic' }}>
-            This dossier does not assess the truthfulness of the claimant's account. Narrative gaps may reflect trauma, memory fragmentation, or translation issues, and must be explored compassionately by the legal professional. This tool does not constitute legal advice.
+            {t('clinic.case.disclaimer')}
           </p>
         </div>
       </div>
 
-      {/* Highlight CSS */}
       <style>{`
         .highlight-answer {
-          background: rgba(232, 160, 32, 0.15) !important;
-          border-left: 3px solid #e8a020 !important;
+          background: var(--color-pink-soft) !important;
+          border-left: 3px solid var(--color-pink) !important;
         }
       `}</style>
     </div>
   )
 }
-
-// ── Reusable components ──
 
 function Card({ title, children, style = {}, className = '' }) {
   return (
@@ -349,7 +330,6 @@ function Stat({ label, value }) {
   )
 }
 
-// ── Styles ──
 const backBtn = { background: 'none', border: 'none', color: 'var(--color-muted)', fontSize: '0.82rem', cursor: 'pointer', padding: 0 }
 const actionBtn = { fontSize: '0.75rem', fontWeight: 600, padding: '0.4rem 0.85rem', borderRadius: 'var(--radius-btn)', background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text)', cursor: 'pointer' }
 const labelSm = { fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--color-muted)', textTransform: 'uppercase' }

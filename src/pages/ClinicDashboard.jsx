@@ -11,16 +11,16 @@ const PRIORITY_COLOR = {
 }
 
 const TABS = [
-  { key: 'open',     fr: 'Dossiers ouverts',  en: 'Open cases' },
-  { key: 'working',  fr: 'En traitement',      en: 'Working' },
-  { key: 'archived', fr: 'Archivés',           en: 'Archived' },
+  { key: 'open',     tKey: 'clinic.tabs.open' },
+  { key: 'working',  tKey: 'clinic.tabs.working' },
+  { key: 'archived', tKey: 'clinic.tabs.archived' },
 ]
 
 const LEGEND = [
-  { color: '#FF2D2D', label: 'Audience imminente / Menace explicite' },
-  { color: '#FF8C00', label: 'Audience dans 30 jours / Dossier ancien' },
-  { color: '#FFD700', label: 'Audience dans 60 jours' },
-  { color: '#00CC44', label: 'Nouveau dossier' },
+  { color: '#FF2D2D', tKey: 'clinic.legend.1' },
+  { color: '#FF8C00', tKey: 'clinic.legend.2' },
+  { color: '#FFD700', tKey: 'clinic.legend.3' },
+  { color: '#00CC44', tKey: 'clinic.legend.4' },
 ]
 
 function CaseCard({ caseObj, onClick }) {
@@ -81,7 +81,7 @@ function CaseCard({ caseObj, onClick }) {
 const CLINIC_NAME = 'Le Collectif Bienvenue'
 
 export default function ClinicDashboard() {
-  const { isAuthenticated, cases: mockCases } = useApp()
+  const { isAuthenticated, cases: mockCases, t } = useApp()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('open')
   const [liveCases, setLiveCases] = useState([])
@@ -154,7 +154,7 @@ export default function ClinicDashboard() {
                   color: active ? 'var(--color-primary)' : 'var(--color-muted)',
                 }}
               >
-                {tab.fr}
+                {t(tab.tKey)}
                 <span
                   style={{
                     fontSize: '0.65rem',
@@ -169,9 +169,6 @@ export default function ClinicDashboard() {
                 >
                   {tabCounts[tab.key]}
                 </span>
-              </span>
-              <span style={{ fontSize: '0.68rem', color: 'var(--color-muted)' }}>
-                {tab.en}
               </span>
             </button>
           )
@@ -199,7 +196,7 @@ export default function ClinicDashboard() {
               fontStyle: 'italic',
             }}
           >
-            Aucun dossier · No cases
+            {t('clinic.dashboard.empty')}
           </p>
         ) : (
           visible.map((c) => (
