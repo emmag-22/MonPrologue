@@ -7,7 +7,7 @@ const PHASE_ROUTES = [
   '/seeker/interview/1',
   '/seeker/interview/2',
   '/seeker/interview/3',
-  '/seeker/report',
+  '/seeker/review',
 ]
 
 function currentPhaseFromPath(pathname) {
@@ -15,7 +15,7 @@ function currentPhaseFromPath(pathname) {
   if (pathname.includes('/interview/1')) return 1
   if (pathname.includes('/interview/2')) return 2
   if (pathname.includes('/interview/3')) return 3
-  if (pathname.includes('/report')) return 4
+  if (pathname.includes('/review')) return 4
   return -1
 }
 
