@@ -71,6 +71,9 @@ function CaseCard({ caseObj, onClick }) {
           {caseObj.countryFlag}&nbsp;&nbsp;{caseObj.country}
         </span>
       </div>
+
+      {/* Right urgency bar */}
+      <div style={{ width: 6, background: PRIORITY_COLOR[priority], flexShrink: 0 }} />
     </button>
   )
 }
